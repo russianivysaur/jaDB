@@ -67,6 +67,18 @@ func TestFileManager(t *testing.T) {
 		assert.Equalf(testString, page.getString(offset), "test string does not match in page")
 	})
 
+	t.Run("TempCleanup", func(t *testing.T) {
+		tempFilename := "temp_file.db"
+		filePath := filepath.Join(directory, tempFilename)
+		if err := os.MkdirAll(filePath, 0755); err != nil {
+			t.Errorf("could not create test file %s: %v", tempFilename, err)
+		}
+		_, err := NewFileManager(directory, blockSize)
+		assert.NoErrorf(err, "could not create file manager : %v", err)
+		_, err = os.Stat(filePath)
+		assert.ErrorIs(err, os.ErrNotExist, "file manager could not clear temp files: %s", tempFilename)
+	})
+
 	t.Run("Concurrent", func(t *testing.T) {
 		filename := "concurrent.db"
 
