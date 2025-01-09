@@ -2,123 +2,106 @@ package file
 
 import (
 	"fmt"
-	"io"
+	assertPkg "github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
+	"testing"
 )
 
-type Manager struct {
-	dbDirectory string
-	blockSize   int
-	openFiles   map[string]*os.File
-	lock        sync.Mutex
-}
+func TestFileManager(t *testing.T) {
+	assert := assertPkg.New(t)
+	directory := filepath.Join(os.TempDir(), "test")
+	blockSize := 500
 
-func NewFileManager(directory string, blockSize int) (*Manager, error) {
-	if _, err := os.Stat(directory); os.IsNotExist(err) {
-		err := os.MkdirAll(directory, 0755)
-		if err != nil {
-			return nil, fmt.Errorf("cannot create directory %v", err)
+	defer func() {
+		if err := os.RemoveAll(directory); err != nil {
+			t.Errorf("could not remove temporary files: %v", err)
 		}
-	}
-	//read directory entries
-	entries, err := os.ReadDir(directory)
-	if err != nil {
-		return nil, fmt.Errorf("cannot read directory %v", err)
-	}
-	//clean temp files
-	for _, entry := range entries {
-		if strings.HasPrefix(entry.Name(), "temp") {
-			tempFilePath := filepath.Join(directory, entry.Name())
-			err := os.RemoveAll(tempFilePath)
-			if err != nil {
-				return nil, fmt.Errorf("cannot remove temp file : %v", err)
-			}
+	}()
+
+	t.Run("NewFileManager", func(t *testing.T) {
+		manager, err := NewFileManager(directory, blockSize)
+		assert.NoErrorf(err, "Some error occured : %v", err)
+		assert.Equalf(manager.dbDirectory, directory, "Directory does not match")
+		assert.Equalf(manager.BlockSize(), blockSize, "Block size does not match")
+	})
+
+	t.Run("AppendWriteAndRead", func(t *testing.T) {
+		filename := "appendWriteAndRead.db"
+		manager, err := NewFileManager(directory, blockSize)
+		assert.NoErrorf(err, "could not create manager : %v", err)
+		blockCount := 10
+
+		for i := 0; i < blockCount; i++ {
+			block, err := manager.Append(filename)
+			assert.NoErrorf(err, "could not append block : %v", err)
+			assert.Equalf(block.getBlockNumber(), i, "expected block number %d, got %d", i, block.getBlockNumber())
+			assert.Equalf(block.getFileName(), filename, "expected file name %s,got %s", filename, block.getFileName())
 		}
-	}
-	return &Manager{
-		dbDirectory: directory,
-		blockSize:   blockSize,
-		openFiles:   make(map[string]*os.File),
-	}, nil
-}
+		fileLength, err := manager.Length(filename)
+		assert.NoErrorf(err, "could not find file length : %v", err)
+		assert.Equalf(blockCount, fileLength, "expected block count %d, got %d", blockCount, fileLength)
 
-func (manager *Manager) read(block *BlockId, page *Page) error {
-	manager.lock.Lock()
-	defer manager.lock.Unlock()
+		blockNumber := 5
+		block := &BlockId{
+			filename,
+			blockNumber,
+		}
 
-	file, err := manager.getFile(block.getFileName())
-	if err != nil {
-		return err
-	}
+		//write string to page
+		offset := 3
+		testString := "This is a test string!"
+		page := NewPage(blockSize)
+		err = page.setString(offset, testString)
+		assert.NoErrorf(err, "could not set string in page : %v", err)
 
-	stat, err := file.Stat()
-	if err != nil {
-		return fmt.Errorf("could not stat file : %v", err)
-	}
-	size := int(stat.Size())
+		// writing page to block
+		err = manager.Write(block, page)
+		assert.NoErrorf(err, "could not write to block : %v", err)
 
-	blockOffset := block.getBlockNumber() * manager.blockSize
-	if size <= blockOffset+manager.blockSize {
-		return fmt.Errorf("the block does not exist")
-	}
+		// read page and check for string
+		page = NewPage(blockSize)
+		err = manager.Read(block, page)
+		assert.NoErrorf(err, "could not read block to page : %v", err)
+		assert.Equalf(testString, page.getString(offset), "test string does not match in page")
+	})
 
-	if _, err := file.Seek(int64(blockOffset), io.SeekStart); err != nil {
-		return fmt.Errorf("could not seek to offset :%v", err)
-	}
+	t.Run("Concurrent", func(t *testing.T) {
+		filename := "concurrent.db"
 
-	n, err := file.Read(page.Contents())
-	if err != nil {
-		return fmt.Errorf("could not read block into page: %v", err)
-	}
+		manager, err := NewFileManager(directory, blockSize)
+		assert.NoErrorf(err, "cannot create file manager : %v", err)
 
-	if n != manager.blockSize {
-		return fmt.Errorf("got %d bytes expected %d", n, manager.blockSize)
-	}
-	return nil
+		numGoroutines := 10
+		var wg sync.WaitGroup
+		for i := 0; i < numGoroutines; i++ {
+			wg.Add(1)
+			go func(index int) {
+				defer wg.Done()
+				block, err := manager.Append(filename)
+				assert.NoErrorf(err, "could not append block : %v", err)
 
-}
+				page := NewPage(blockSize)
+				err = manager.Read(block, page)
+				assert.NoErrorf(err, "could not read block into page : %v", err)
+				testString := fmt.Sprintf("Test text for goroutine %d", index)
+				err = page.setString(0, testString)
+				assert.NoErrorf(err, "could not write to page : %v", err)
 
-func (manager *Manager) write(block *BlockId, page *Page) error {
-	manager.lock.Lock()
-	defer manager.lock.Unlock()
+				//write page to block
+				err = manager.Write(block, page)
+				assert.NoErrorf(err, "could not write page to block : %v", err)
 
-	file, err := manager.getFile(block.getFileName())
-	if err != nil {
-		return err
-	}
-	blockOffset := block.getBlockNumber() * manager.blockSize
-	if _, err := file.Seek(int64(blockOffset), io.SeekStart); err != nil {
-		return fmt.Errorf("could not seek to offset %d: %v", blockOffset, err)
-	}
-	n, err := file.Write(page.Contents())
-	if err != nil {
-		return fmt.Errorf("could not write page to file: %v", err)
-	}
-	if n != manager.blockSize {
-		return fmt.Errorf("expected %d bytes, wrote %d bytes", manager.blockSize, n)
-	}
-	if err := file.Sync(); err != nil {
-		return fmt.Errorf("fsync error: %v", err)
-	}
-	return nil
-}
+				//read page back
+				page = NewPage(blockSize)
+				err = manager.Read(block, page)
+				assert.NoErrorf(err, "could not read block to page : %v", err)
 
-func (manager *Manager) append(filename string) (*BlockId, error) {
-	return nil, nil
-}
-
-func (manager *Manager) getFile(filename string) (*os.File, error) {
-	if file, exists := manager.openFiles[filename]; exists {
-		return file, nil
-	}
-	filePath := filepath.Join(manager.dbDirectory, filename)
-	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_SYNC, 0755)
-	if err != nil {
-		return nil, fmt.Errorf("could not create file : %v", err)
-	}
-	manager.openFiles[filename] = file
-	return file, nil
+				extractedString := page.getString(0)
+				assert.Equalf(testString, extractedString, "strings do not match for goroutine %d", index)
+			}(i)
+		}
+		wg.Wait()
+	})
 }
