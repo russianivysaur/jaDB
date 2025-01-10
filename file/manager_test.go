@@ -53,7 +53,7 @@ func TestFileManager(t *testing.T) {
 		offset := 3
 		testString := "This is a test string!"
 		page := NewPage(blockSize)
-		err = page.setString(offset, testString)
+		err = page.SetString(offset, testString)
 		assert.NoErrorf(err, "could not set string in page : %v", err)
 
 		// writing page to block
@@ -64,7 +64,7 @@ func TestFileManager(t *testing.T) {
 		page = NewPage(blockSize)
 		err = manager.Read(block, page)
 		assert.NoErrorf(err, "could not read block to page : %v", err)
-		assert.Equalf(testString, page.getString(offset), "test string does not match in page")
+		assert.Equalf(testString, page.GetString(offset), "test string does not match in page")
 	})
 
 	t.Run("TempCleanup", func(t *testing.T) {
@@ -98,7 +98,7 @@ func TestFileManager(t *testing.T) {
 				err = manager.Read(block, page)
 				assert.NoErrorf(err, "could not read block into page : %v", err)
 				testString := fmt.Sprintf("Test text for goroutine %d", index)
-				err = page.setString(0, testString)
+				err = page.SetString(0, testString)
 				assert.NoErrorf(err, "could not write to page : %v", err)
 
 				//write page to block
@@ -110,7 +110,7 @@ func TestFileManager(t *testing.T) {
 				err = manager.Read(block, page)
 				assert.NoErrorf(err, "could not read block to page : %v", err)
 
-				extractedString := page.getString(0)
+				extractedString := page.GetString(0)
 				assert.Equalf(testString, extractedString, "strings do not match for goroutine %d", index)
 			}(i)
 		}

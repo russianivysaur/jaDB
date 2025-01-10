@@ -5,6 +5,13 @@ type BlockId struct {
 	blkNum   int
 }
 
+func NewBlock(filename string, blockNumber int) *BlockId {
+	return &BlockId{
+		filename,
+		blockNumber,
+	}
+}
+
 func (block *BlockId) getFileName() string {
 	return block.fileName
 }
