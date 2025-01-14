@@ -39,7 +39,6 @@ func TestLogManager(t *testing.T) {
 		boundary := logManager.logPage.GetInt(0)
 		expectedBoundary := fileManager.BlockSize() - totalLogSize
 		assert.Equalf(boundary, expectedBoundary, "expected boundary to be at %d, found %d", expectedBoundary, boundary)
-
 	})
 
 	t.Run("TestAppendMultipleRecords", func(t *testing.T) {
