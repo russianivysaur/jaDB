@@ -8,6 +8,6 @@ func TestBlockId(t *testing.T) {
 	fileName := "test.db"
 	blockNum := 200
 	block := &BlockId{fileName, blockNum}
-	assert.Equalf(block.getFileName(), fileName, "Block could not set filename %s", fileName)
-	assert.Equalf(block.getBlockNumber(), blockNum, "Block could not set block number %d", blockNum)
+	assert.Equalf(block.GetFileName(), fileName, "Block could not set filename %s", fileName)
+	assert.Equalf(block.GetBlockNumber(), blockNum, "Block could not set block number %d", blockNum)
 }

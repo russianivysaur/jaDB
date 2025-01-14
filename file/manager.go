@@ -49,7 +49,7 @@ func (manager *Manager) Read(block *BlockId, page *Page) error {
 	manager.lock.Lock()
 	defer manager.lock.Unlock()
 
-	file, err := manager.GetFile(block.getFileName())
+	file, err := manager.GetFile(block.GetFileName())
 	if err != nil {
 		return err
 	}
@@ -60,9 +60,9 @@ func (manager *Manager) Read(block *BlockId, page *Page) error {
 	}
 	size := int(stat.Size())
 
-	blockOffset := block.getBlockNumber() * manager.blockSize
+	blockOffset := block.GetBlockNumber() * manager.blockSize
 	if size < blockOffset+manager.blockSize {
-		return fmt.Errorf("the block %d does not exist", block.getBlockNumber())
+		return fmt.Errorf("the block %d does not exist", block.GetBlockNumber())
 	}
 
 	if _, err := file.Seek(int64(blockOffset), io.SeekStart); err != nil {
@@ -85,11 +85,11 @@ func (manager *Manager) Write(block *BlockId, page *Page) error {
 	manager.lock.Lock()
 	defer manager.lock.Unlock()
 
-	file, err := manager.GetFile(block.getFileName())
+	file, err := manager.GetFile(block.GetFileName())
 	if err != nil {
 		return err
 	}
-	blockOffset := block.getBlockNumber() * manager.blockSize
+	blockOffset := block.GetBlockNumber() * manager.blockSize
 	if _, err := file.Seek(int64(blockOffset), io.SeekStart); err != nil {
 		return fmt.Errorf("could not seek to offset %d: %v", blockOffset, err)
 	}
@@ -141,8 +141,11 @@ func (manager *Manager) Append(filename string) (*BlockId, error) {
 }
 
 func (manager *Manager) Length(filename string) (int, error) {
-	filePath := filepath.Join(manager.dbDirectory, filename)
-	stat, err := os.Stat(filePath)
+	file, err := manager.GetFile(filename)
+	if err != nil {
+		return -1, err
+	}
+	stat, err := file.Stat()
 	if err != nil {
 		return -1, fmt.Errorf("could not stat file %s : %v", filename, err)
 	}

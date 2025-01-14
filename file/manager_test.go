@@ -36,8 +36,8 @@ func TestFileManager(t *testing.T) {
 		for i := 0; i < blockCount; i++ {
 			block, err := manager.Append(filename)
 			assert.NoErrorf(err, "could not append block : %v", err)
-			assert.Equalf(block.getBlockNumber(), i, "expected block number %d, got %d", i, block.getBlockNumber())
-			assert.Equalf(block.getFileName(), filename, "expected file name %s,got %s", filename, block.getFileName())
+			assert.Equalf(block.GetBlockNumber(), i, "expected block number %d, got %d", i, block.GetBlockNumber())
+			assert.Equalf(block.GetFileName(), filename, "expected file name %s,got %s", filename, block.GetFileName())
 		}
 		fileLength, err := manager.Length(filename)
 		assert.NoErrorf(err, "could not find file length : %v", err)

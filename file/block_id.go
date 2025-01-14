@@ -12,10 +12,10 @@ func NewBlock(filename string, blockNumber int) *BlockId {
 	}
 }
 
-func (block *BlockId) getFileName() string {
+func (block *BlockId) GetFileName() string {
 	return block.fileName
 }
 
-func (block *BlockId) getBlockNumber() int {
+func (block *BlockId) GetBlockNumber() int {
 	return block.blkNum
 }

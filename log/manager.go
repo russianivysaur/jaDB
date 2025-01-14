@@ -42,8 +42,7 @@ func NewLogManager(fileManager *file.Manager, logFile string) (*Manager, error) 
 		//load last block into logPage
 		lastBlockNumber := fileLength - 1
 		block = file.NewBlock(logFile, lastBlockNumber)
-		err = fileManager.Read(block, logPage)
-		if err != nil {
+		if err = fileManager.Read(block, logPage); err != nil {
 			return nil, err
 		}
 	}
@@ -57,6 +56,15 @@ func NewLogManager(fileManager *file.Manager, logFile string) (*Manager, error) 
 	}, nil
 }
 
+func (manager *Manager) GetIterator() (*Iterator, error) {
+	//flush to get an iterator on the latest copy of the page
+	if err := manager.flush(); err != nil {
+		return nil, err
+	}
+
+	return NewIterator(manager.fileManager, manager.currentBlock)
+}
+
 func (manager *Manager) Append(data []byte) (int, error) {
 	manager.lock.Lock()
 	defer manager.lock.Unlock()
@@ -64,7 +72,7 @@ func (manager *Manager) Append(data []byte) (int, error) {
 	requiredBytes := len(data) + constants.IntSize
 	if boundary-requiredBytes < constants.IntSize {
 		//flush this page
-		err := manager.flush(manager.latestLSN)
+		err := manager.flush()
 		if err != nil {
 			return -1, err
 		}
@@ -91,11 +99,11 @@ func (manager *Manager) Append(data []byte) (int, error) {
 	return manager.latestLSN, nil
 }
 
-func (manager *Manager) flush(lsn int) error {
+func (manager *Manager) flush() error {
 	if err := manager.fileManager.Write(manager.currentBlock, manager.logPage); err != nil {
 		return err
 	}
-	manager.lastSavedLSN = lsn
+	manager.lastSavedLSN = manager.latestLSN
 	return nil
 }
 
@@ -103,7 +111,7 @@ func (manager *Manager) Flush(lsn int) error {
 	manager.lock.Lock()
 	defer manager.lock.Unlock()
 	if lsn > manager.lastSavedLSN {
-		return manager.flush(lsn)
+		return manager.flush()
 	}
 	return nil
 }
