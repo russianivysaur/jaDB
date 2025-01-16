@@ -3,14 +3,14 @@ package buffer
 import (
 	"context"
 	"errors"
-	"fmt"
 	"justanotherdb/file"
 	"justanotherdb/log"
 	"sync"
+	"time"
 )
 
 // MAX_TIME max wait time for buffer to be free
-const MAX_TIME = 10000
+const MAX_TIME = 10
 
 type Manager struct {
 	bufferPool  []*Buffer
@@ -19,8 +19,8 @@ type Manager struct {
 	conditional *sync.Cond
 }
 
-func NewBufferManager(fm *file.Manager, lm *log.Manager) *Manager {
-	pool := make([]*Buffer, 100)
+func NewBufferManager(fm *file.Manager, lm *log.Manager, bufferPoolCount int) *Manager {
+	pool := make([]*Buffer, bufferPoolCount)
 	for i, _ := range pool {
 		pool[i] = NewBuffer(fm, lm)
 	}
@@ -33,12 +33,12 @@ func NewBufferManager(fm *file.Manager, lm *log.Manager) *Manager {
 	return manager
 }
 
-func (manager *Manager) Pin(block *file.BlockId) *Buffer {
+func (manager *Manager) Pin(block *file.BlockId) (*Buffer, error) {
 	manager.lock.Lock()
 	defer manager.lock.Unlock()
 
 	//magic
-	timedContext, cancel := context.WithTimeout(context.Background(), MAX_TIME)
+	timedContext, cancel := context.WithTimeout(context.Background(), time.Second*MAX_TIME)
 	defer cancel()
 
 	//timed out
@@ -49,15 +49,20 @@ func (manager *Manager) Pin(block *file.BlockId) *Buffer {
 		manager.conditional.L.Unlock()
 	})
 	defer timeout()
+	var err error
+	var buff *Buffer
 	for {
-		if buff := manager.tryToPin(block); buff != nil {
-			return buff
+		if buff, err = manager.tryToPin(block); buff != nil {
+			return buff, nil
+		}
+
+		if err != nil {
+			return nil, err
 		}
 
 		manager.conditional.Wait()
 		if timedContext.Err() != nil && errors.Is(timedContext.Err(), context.DeadlineExceeded) {
-			fmt.Println("No free buffer found, cannot pin block")
-			return nil
+			return nil, context.DeadlineExceeded
 		}
 	}
 }
@@ -89,22 +94,22 @@ func (manager *Manager) FlushAll(txNum int) error {
 	return nil
 }
 
-func (manager *Manager) tryToPin(block *file.BlockId) *Buffer {
+func (manager *Manager) tryToPin(block *file.BlockId) (*Buffer, error) {
 	buffer := manager.findExistingBuffer(block)
 	if buffer != nil {
-		return buffer
+		return buffer, nil
 	}
 	for _, buffer := range manager.bufferPool {
 		if !buffer.isPinned() {
 			if err := buffer.assignToBlock(block); err != nil {
-				return nil
+				return nil, err
 			}
 			manager.available--
 			buffer.pin()
-			return buffer
+			return buffer, nil
 		}
 	}
-	return nil
+	return nil, nil
 }
 
 func (manager *Manager) findExistingBuffer(block *file.BlockId) *Buffer {
