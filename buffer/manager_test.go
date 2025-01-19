@@ -157,6 +157,45 @@ func TestBufferManager(t *testing.T) {
 		assert.NotEqualf(buffer, nil, "nil buffer")
 	})
 
+	t.Run("TimeOutTest", func(t *testing.T) {
+		// there are total of 100 buffers
+		// gonna spin up 99 threads to pin 99 blocks
+		// spin up 1 thread to fill the last remaining
+		// the main thread has to starve for a slot
+		// then make the 100th thread unpin the page just in time for 100th thread to acquire it
+
+		var wg sync.WaitGroup
+		wg.Add(env.bufferPoolCount - 1)
+		for i := 0; i < env.bufferPoolCount-1; i++ {
+			go func(i int) {
+				_, err := bm.Pin(file.NewBlock(env.databaseFile, i))
+				assert.NoError(err, "could not pin buffer %d: %v", i, err)
+				wg.Done()
+			}(i)
+		}
+
+		wg.Wait()
+
+		assert.Equalf(bm.Available(), 1,
+			"expected %d free buffer, found %d free buffers", env.bufferPoolCount-2, bm.Available())
+
+		var wg1 sync.WaitGroup
+		wg1.Add(1)
+		// the nice routine
+		go func(i int) {
+			buff, err := bm.Pin(file.NewBlock(env.databaseFile, i))
+			assert.NoErrorf(err, "could not pin buffer %d: %v", i, err)
+			wg1.Done()
+			time.Sleep(time.Second * 15)
+			bm.Unpin(buff)
+		}(env.bufferPoolCount - 1)
+
+		wg1.Wait()
+		// the starving thread
+		_, err := bm.Pin(file.NewBlock(env.databaseFile, env.bufferPoolCount))
+		assert.ErrorIsf(err, context.DeadlineExceeded, "OOM: %v", err)
+	})
+
 	//temp removal
 	if err := os.RemoveAll(env.tempDir); err != nil {
 		t.Errorf("could not delete temp folder: %v", err)
