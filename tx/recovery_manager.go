@@ -12,6 +12,14 @@ type RecoveryManager struct {
 	bm    *buffer.Manager
 }
 
+func NewRecoveryManager(tx *Transaction, txNum int, lm *log.Manager, bm *buffer.Manager) (*RecoveryManager, error) {
+	return &RecoveryManager{
+		tx,
+		txNum,
+		lm, bm,
+	}, nil
+}
+
 func (rm *RecoveryManager) commit() {
 
 }

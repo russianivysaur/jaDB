@@ -4,6 +4,7 @@ import (
 	"justanotherdb/buffer"
 	"justanotherdb/concurrency"
 	"justanotherdb/file"
+	"justanotherdb/log"
 	"sync"
 )
 
@@ -19,10 +20,29 @@ type Transaction struct {
 	buffers *BufferList
 }
 
-func NewTransaction() (*Transaction, error) {
+func NewTransaction(fm *file.Manager, bm *buffer.Manager, lm *log.Manager) (*Transaction, error) {
 	txNumLock.Lock()
 	txNum := nextTxNum
 	nextTxNum++
 	txNumLock.Unlock()
-	return &Transaction{}, nil
+	myBuffers, err := NewBufferList(bm)
+	if err != nil {
+		return nil, err
+	}
+	cm, err := concurrency.NewConcurrencyManager()
+	if err != nil {
+		return nil, err
+	}
+	tx := &Transaction{
+		txNum:   txNum,
+		fm:      fm,
+		bm:      bm,
+		buffers: myBuffers,
+		cm:      cm,
+	}
+	tx.rm, err = NewRecoveryManager(tx, txNum, lm, bm)
+	if err != nil {
+		return nil, err
+	}
+	return tx, nil
 }
