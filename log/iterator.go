@@ -40,11 +40,12 @@ func (iterator *Iterator) Next() ([]byte, error) {
 		if err := iterator.fileManager.Read(block, iterator.page); err != nil {
 			return nil, err
 		}
+		iterator.block = block
 		iterator.boundary = iterator.page.GetInt(0)
 		iterator.currentPos = iterator.boundary
 	}
 	logRecord := iterator.page.GetBytes(iterator.currentPos)
-	iterator.currentPos += constants.IntSize
+	iterator.currentPos += constants.IntSize + len(logRecord)
 	return logRecord, nil
 }
 

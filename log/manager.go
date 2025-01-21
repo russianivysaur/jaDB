@@ -45,6 +45,8 @@ func NewLogManager(fileManager *file.Manager, logFile string) (*Manager, error) 
 		if err = fileManager.Read(block, logPage); err != nil {
 			return nil, err
 		}
+		boundary := logPage.GetInt(0)
+		latestLSN = logPage.GetInt(boundary)
 	}
 	return &Manager{
 		fileManager:  fileManager,
@@ -92,8 +94,7 @@ func (manager *Manager) Append(data []byte) (int, error) {
 		manager.currentBlock = block
 	}
 	offset := boundary - requiredBytes
-	manager.logPage.SetInt(offset, len(data))
-	manager.logPage.SetBytes(offset+constants.IntSize, data)
+	manager.logPage.SetBytes(offset, data)
 	manager.logPage.SetInt(0, offset)
 	manager.latestLSN++
 	return manager.latestLSN, nil
