@@ -46,3 +46,23 @@ func NewTransaction(fm *file.Manager, bm *buffer.Manager, lm *log.Manager) (*Tra
 	}
 	return tx, nil
 }
+
+func (tx *Transaction) Commit() {
+
+}
+
+func (tx *Transaction) Rollback() {}
+
+func (tx *Transaction) Recover() {}
+
+func (tx *Transaction) pin() {}
+
+func (tx *Transaction) unpin() {}
+
+func (tx *Transaction) getInt() {}
+
+func (tx *Transaction) getString() {}
+
+func (tx *Transaction) setInt() {}
+
+func (tx *Transaction) setString() {}

@@ -114,7 +114,7 @@ func (manager *Manager) tryToPin(block *file.BlockId) (*Buffer, error) {
 
 func (manager *Manager) findExistingBuffer(block *file.BlockId) *Buffer {
 	for _, buffer := range manager.bufferPool {
-		if buffer.block == block && buffer.isPinned() {
+		if buffer.block.Equals(block) && buffer.isPinned() {
 			return buffer
 		}
 	}

@@ -19,3 +19,7 @@ func (block *BlockId) GetFileName() string {
 func (block *BlockId) GetBlockNumber() int {
 	return block.blkNum
 }
+
+func (block *BlockId) Equals(block2 *BlockId) bool {
+	return block.fileName == block2.fileName && block.blkNum == block2.blkNum
+}
