@@ -20,7 +20,7 @@ type Transaction struct {
 	buffers *BufferList
 }
 
-func NewTransaction(fm *file.Manager, bm *buffer.Manager, lm *log.Manager) (*Transaction, error) {
+func NewTransaction(fm *file.Manager, bm *buffer.Manager, lm *log.Manager, lt *concurrency.LockTable) (*Transaction, error) {
 	txNumLock.Lock()
 	txNum := nextTxNum
 	nextTxNum++
@@ -29,7 +29,7 @@ func NewTransaction(fm *file.Manager, bm *buffer.Manager, lm *log.Manager) (*Tra
 	if err != nil {
 		return nil, err
 	}
-	cm, err := concurrency.NewConcurrencyManager()
+	cm, err := concurrency.NewConcurrencyManager(lt)
 	if err != nil {
 		return nil, err
 	}
@@ -63,6 +63,25 @@ func (tx *Transaction) getInt() {}
 
 func (tx *Transaction) getString() {}
 
-func (tx *Transaction) setInt() {}
+func (tx *Transaction) setInt(block file.BlockId, offset int, newVal int, log bool) error {
+	if err := tx.cm.XLock(block); err != nil {
+		return err
+	}
+	buff, err := tx.buffers.getBuffer(block)
+	if err != nil {
+		return err
+	}
+	lsn := -1
+	if log {
+		lsn, err = tx.rm.setInt(buff, offset, newVal)
+		if err != nil {
+			return err
+		}
+	}
+	page := buff.Contents()
+	page.SetInt(offset, newVal)
+	buff.SetModified(tx.txNum, lsn)
+	return nil
+}
 
 func (tx *Transaction) setString() {}

@@ -39,7 +39,7 @@ func (buffer *Buffer) isPinned() bool {
 	return buffer.pins > 0
 }
 
-func (buffer *Buffer) setModified(txNum int, lsn int) {
+func (buffer *Buffer) SetModified(txNum int, lsn int) {
 	buffer.txNum = txNum
 	buffer.lsn = lsn
 }

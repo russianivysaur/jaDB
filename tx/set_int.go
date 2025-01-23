@@ -16,7 +16,18 @@ type SetIntRecord struct {
 	newVal      int
 }
 
-func NewSetIntRecord(page *file.Page) (*SetIntRecord, error) {
+func NewSetIntRecord(txNum int, block *file.BlockId, offset int, oldVal int, newVal int) *SetIntRecord {
+	return &SetIntRecord{
+		txNum,
+		block.GetFileName(),
+		block,
+		offset,
+		oldVal,
+		newVal,
+	}
+}
+
+func NewSetIntRecordFromPage(page *file.Page) (*SetIntRecord, error) {
 	txNumOffset := constants.IntSize
 	txNum := page.GetInt(txNumOffset)
 	filenameOffset := txNumOffset + constants.IntSize

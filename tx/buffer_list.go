@@ -22,11 +22,11 @@ func NewBufferList(bm *buffer.Manager) (*BufferList, error) {
 	}, nil
 }
 
-func (list *BufferList) GetBuffer(block file.BlockId) *buffer.Buffer {
-	if pinnedBuffer, ok := list.buffers[block]; ok {
-		return pinnedBuffer.buffer
+func (list *BufferList) getBuffer(block file.BlockId) (*buffer.Buffer, error) {
+	if err := list.pin(block); err != nil {
+		return nil, err
 	}
-	return nil
+	return list.buffers[block].buffer, nil
 }
 
 func (list *BufferList) pin(block file.BlockId) error {

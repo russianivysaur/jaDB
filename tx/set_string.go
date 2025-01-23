@@ -44,6 +44,7 @@ func (record *SetStringRecord) Op() LogRecordType {
 }
 
 func (record *SetStringRecord) Undo(tx *Transaction) error {
+	tx.pin(record.block)
 	return nil
 }
 
@@ -67,7 +68,7 @@ func (record *SetStringRecord) WriteToLog(lm *log.Manager) (int, error) {
 	newValOffset := oldValOffset + file.MaxLength(len(record.oldVal))
 	recordLength := newValOffset
 	page := file.NewPageWithBuffer(make([]byte, recordLength))
-	page.SetInt(recordTypeOffset, int(SET_INT))
+	page.SetInt(recordTypeOffset, int(SET_STRING))
 	page.SetInt(txNumOffset, record.txNum)
 	if err := page.SetString(filenameOffset, record.filename); err != nil {
 		return -1, err

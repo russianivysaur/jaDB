@@ -37,7 +37,7 @@ func CreateLogRecord(data []byte) (LogRecord, error) {
 	//case ROLLBACK:
 	//	return NewRollbackRecord(page)
 	case SET_INT:
-		return NewSetIntRecord(page)
+		return NewSetIntRecordFromPage(page)
 	case SET_STRING:
 		return NewSetStringRecord(page)
 	}
