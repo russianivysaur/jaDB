@@ -39,7 +39,7 @@ func (manager *Manager) XLock(block file.BlockId) error {
 	return nil
 }
 
-func (manager *Manager) release() {
+func (manager *Manager) Release() {
 	for blk, _ := range manager.locks {
 		manager.lockTable.unlock(blk)
 	}

@@ -16,7 +16,18 @@ type SetStringRecord struct {
 	newVal      string
 }
 
-func NewSetStringRecord(page *file.Page) (*SetStringRecord, error) {
+func NewSetStringRecord(txNum int, block *file.BlockId, offset int, oldVal string, newVal string) *SetStringRecord {
+	return &SetStringRecord{
+		txNum,
+		block.GetFileName(),
+		block,
+		offset,
+		oldVal,
+		newVal,
+	}
+}
+
+func NewSetStringRecordFromPage(page *file.Page) (*SetStringRecord, error) {
 	txNumOffset := constants.IntSize
 	txNum := page.GetInt(txNumOffset)
 	filenameOffset := txNumOffset + constants.IntSize
@@ -44,8 +55,7 @@ func (record *SetStringRecord) Op() LogRecordType {
 }
 
 func (record *SetStringRecord) Undo(tx *Transaction) error {
-	tx.pin(record.block)
-	return nil
+
 }
 
 func (record *SetStringRecord) ToString() string {

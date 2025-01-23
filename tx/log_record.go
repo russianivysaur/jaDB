@@ -28,18 +28,18 @@ type LogRecord interface {
 func CreateLogRecord(data []byte) (LogRecord, error) {
 	page := file.NewPageWithBuffer(data)
 	switch LogRecordType(page.GetInt(0)) {
-	//case CHECKPOINT:
-	//	return NewCheckpointRecord()
-	//case START:
-	//	return NewStartRecord(page)
-	//case COMMIT:
-	//	return NewCommitRecord(page)
-	//case ROLLBACK:
-	//	return NewRollbackRecord(page)
+	case CHECKPOINT:
+		return NewCheckpointRecord(), nil
+	case START:
+		return NewStartRecordFromPage(page)
+	case COMMIT:
+		return NewCommitRecordFromPage(page)
+	case ROLLBACK:
+		return NewRollbackRecordFromPage(page)
 	case SET_INT:
 		return NewSetIntRecordFromPage(page)
 	case SET_STRING:
-		return NewSetStringRecord(page)
+		return NewSetStringRecordFromPage(page)
 	}
 	return nil, fmt.Errorf("unexpected LogRecordType")
 }
