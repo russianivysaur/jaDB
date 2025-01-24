@@ -21,7 +21,7 @@ type Transaction struct {
 	buffers *BufferList
 }
 
-func NewTransaction(fm *file.Manager, bm *buffer.Manager, lm *log.Manager, lt *concurrency.LockTable) (*Transaction, error) {
+func NewTransaction(fm *file.Manager, lm *log.Manager, bm *buffer.Manager, lt *concurrency.LockTable) (*Transaction, error) {
 	txNumLock.Lock()
 	txNum := nextTxNum
 	nextTxNum++
@@ -78,22 +78,22 @@ func (tx *Transaction) Recover() error {
 	return nil
 }
 
-func (tx *Transaction) pin(block file.BlockId) error {
-	if err := tx.buffers.pin(block); err != nil {
+func (tx *Transaction) pin(block *file.BlockId) error {
+	if err := tx.buffers.pin(*block); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (tx *Transaction) unpin(block file.BlockId) {
-	tx.buffers.unpin(block)
+func (tx *Transaction) unpin(block *file.BlockId) {
+	tx.buffers.unpin(*block)
 }
 
-func (tx *Transaction) getInt(block file.BlockId, offset int) (int, error) {
-	if err := tx.cm.SLock(block); err != nil {
+func (tx *Transaction) GetInt(block *file.BlockId, offset int) (int, error) {
+	if err := tx.cm.SLock(*block); err != nil {
 		return -1, err
 	}
-	buff, err := tx.buffers.getBuffer(block)
+	buff, err := tx.buffers.getBuffer(*block)
 	if err != nil {
 		return -1, err
 	}
@@ -101,11 +101,11 @@ func (tx *Transaction) getInt(block file.BlockId, offset int) (int, error) {
 	return page.GetInt(offset), nil
 }
 
-func (tx *Transaction) getString(block file.BlockId, offset int) (string, error) {
-	if err := tx.cm.SLock(block); err != nil {
+func (tx *Transaction) GetString(block *file.BlockId, offset int) (string, error) {
+	if err := tx.cm.SLock(*block); err != nil {
 		return "", err
 	}
-	buff, err := tx.buffers.getBuffer(block)
+	buff, err := tx.buffers.getBuffer(*block)
 	if err != nil {
 		return "", err
 	}
@@ -113,11 +113,11 @@ func (tx *Transaction) getString(block file.BlockId, offset int) (string, error)
 	return page.GetString(offset), nil
 }
 
-func (tx *Transaction) setInt(block file.BlockId, offset int, newVal int, log bool) error {
-	if err := tx.cm.XLock(block); err != nil {
+func (tx *Transaction) SetInt(block *file.BlockId, offset int, newVal int, log bool) error {
+	if err := tx.cm.XLock(*block); err != nil {
 		return err
 	}
-	buff, err := tx.buffers.getBuffer(block)
+	buff, err := tx.buffers.getBuffer(*block)
 	if err != nil {
 		return err
 	}
@@ -134,11 +134,11 @@ func (tx *Transaction) setInt(block file.BlockId, offset int, newVal int, log bo
 	return nil
 }
 
-func (tx *Transaction) setString(block file.BlockId, offset int, newVal string, log bool) error {
-	if err := tx.cm.XLock(block); err != nil {
+func (tx *Transaction) SetString(block *file.BlockId, offset int, newVal string, log bool) error {
+	if err := tx.cm.XLock(*block); err != nil {
 		return err
 	}
-	buff, err := tx.buffers.getBuffer(block)
+	buff, err := tx.buffers.getBuffer(*block)
 	if err != nil {
 		return err
 	}

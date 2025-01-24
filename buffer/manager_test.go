@@ -54,8 +54,8 @@ func TestBufferManager(t *testing.T) {
 	assert := assertPkg.New(t)
 
 	env := initEnv(t)
-	bm := NewBufferManager(env.fm, env.lm, env.bufferPoolCount)
-
+	bm, err := NewBufferManager(env.fm, env.lm, env.bufferPoolCount)
+	assert.NoError(err)
 	t.Run("Available", func(t *testing.T) {
 		assert.Equalf(bm.Available(), env.bufferPoolCount,
 			"expected %d buffer pool, got %d", env.bufferPoolCount, bm.Available)

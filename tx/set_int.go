@@ -56,6 +56,13 @@ func (record *SetIntRecord) Op() LogRecordType {
 }
 
 func (record *SetIntRecord) Undo(tx *Transaction) error {
+	if err := tx.pin(record.block); err != nil {
+		return err
+	}
+	if err := tx.SetInt(record.block, record.blockOffset, record.oldVal, false); err != nil {
+		return err
+	}
+	tx.unpin(record.block)
 	return nil
 }
 
@@ -64,7 +71,7 @@ func (record *SetIntRecord) TxNumber() int {
 }
 
 func (record *SetIntRecord) ToString() string {
-	return fmt.Sprintf("<SETINT> %d %s %d %d %d %d",
+	return fmt.Sprintf("<SETINT %d %s %d %d %d %d>",
 		record.txNum, record.filename,
 		record.block.GetBlockNumber(), record.blockOffset,
 		record.oldVal, record.newVal)
@@ -78,7 +85,7 @@ func (record *SetIntRecord) WriteToLog(lm *log.Manager) (int, error) {
 	blockOffsetOffset := blockNumberOffset + constants.IntSize
 	oldValOffset := blockOffsetOffset + constants.IntSize
 	newValOffset := oldValOffset + constants.IntSize
-	recordLength := newValOffset
+	recordLength := newValOffset + constants.IntSize
 	page := file.NewPageWithBuffer(make([]byte, recordLength))
 	page.SetInt(recordTypeOffset, int(SET_INT))
 	page.SetInt(txNumOffset, record.txNum)

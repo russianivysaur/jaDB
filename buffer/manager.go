@@ -19,7 +19,7 @@ type Manager struct {
 	conditional *sync.Cond
 }
 
-func NewBufferManager(fm *file.Manager, lm *log.Manager, bufferPoolCount int) *Manager {
+func NewBufferManager(fm *file.Manager, lm *log.Manager, bufferPoolCount int) (*Manager, error) {
 	pool := make([]*Buffer, bufferPoolCount)
 	for i, _ := range pool {
 		pool[i] = NewBuffer(fm, lm)
@@ -30,7 +30,7 @@ func NewBufferManager(fm *file.Manager, lm *log.Manager, bufferPoolCount int) *M
 	}
 	cond := sync.NewCond(&manager.lock)
 	manager.conditional = cond
-	return manager
+	return manager, nil
 }
 
 func (manager *Manager) Pin(block *file.BlockId) (*Buffer, error) {
@@ -114,7 +114,7 @@ func (manager *Manager) tryToPin(block *file.BlockId) (*Buffer, error) {
 
 func (manager *Manager) findExistingBuffer(block *file.BlockId) *Buffer {
 	for _, buffer := range manager.bufferPool {
-		if buffer.block.Equals(block) && buffer.isPinned() {
+		if buffer.block != nil && buffer.block.Equals(block) && buffer.isPinned() {
 			return buffer
 		}
 	}

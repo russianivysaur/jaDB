@@ -46,7 +46,9 @@ func NewLogManager(fileManager *file.Manager, logFile string) (*Manager, error) 
 			return nil, err
 		}
 		boundary := logPage.GetInt(0)
-		latestLSN = logPage.GetInt(boundary)
+		if boundary != fileManager.BlockSize() {
+			latestLSN = logPage.GetInt(boundary)
+		}
 	}
 	return &Manager{
 		fileManager:  fileManager,
