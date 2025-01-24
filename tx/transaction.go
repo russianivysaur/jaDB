@@ -54,7 +54,7 @@ func (tx *Transaction) Commit() error {
 	}
 	tx.cm.Release()
 	tx.buffers.unpinAll()
-	fmt.Printf("Transaction %d committed", tx.txNum)
+	fmt.Printf("Transaction %d committed\n", tx.txNum)
 	return nil
 }
 
@@ -64,7 +64,7 @@ func (tx *Transaction) Rollback() error {
 	}
 	tx.cm.Release()
 	tx.buffers.unpinAll()
-	fmt.Printf("Transaction %d rolledback", tx.txNum)
+	fmt.Printf("Transaction %d rolledback\n", tx.txNum)
 	return nil
 }
 
