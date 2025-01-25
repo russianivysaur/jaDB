@@ -55,7 +55,7 @@ func (record *SetStringRecord) Op() LogRecordType {
 }
 
 func (record *SetStringRecord) Undo(tx *Transaction) error {
-	if err := tx.pin(record.block); err != nil {
+	if err := tx.Pin(record.block); err != nil {
 		return err
 	}
 	if err := tx.SetString(record.block, record.blockOffset, record.oldVal, false); err != nil {

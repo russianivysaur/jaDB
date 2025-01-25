@@ -78,7 +78,7 @@ func (tx *Transaction) Recover() error {
 	return nil
 }
 
-func (tx *Transaction) pin(block *file.BlockId) error {
+func (tx *Transaction) Pin(block *file.BlockId) error {
 	if err := tx.buffers.pin(*block); err != nil {
 		return err
 	}
@@ -154,4 +154,8 @@ func (tx *Transaction) SetString(block *file.BlockId, offset int, newVal string,
 	}
 	buff.SetModified(tx.txNum, lsn)
 	return nil
+}
+
+func (tx *Transaction) BlockSize() int {
+	return tx.fm.BlockSize()
 }
