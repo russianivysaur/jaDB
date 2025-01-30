@@ -85,7 +85,7 @@ func (tx *Transaction) Pin(block *file.BlockId) error {
 	return nil
 }
 
-func (tx *Transaction) unpin(block *file.BlockId) {
+func (tx *Transaction) Unpin(block *file.BlockId) {
 	tx.buffers.unpin(*block)
 }
 
@@ -154,6 +154,22 @@ func (tx *Transaction) SetString(block *file.BlockId, offset int, newVal string,
 	}
 	buff.SetModified(tx.txNum, lsn)
 	return nil
+}
+
+func (tx *Transaction) Size(filename string) (int, error) {
+	dummyBlock := file.NewBlock(filename, -1)
+	if err := tx.cm.SLock(*dummyBlock); err != nil {
+		return -1, err
+	}
+	return tx.fm.Length(filename)
+}
+
+func (tx *Transaction) Append(filename string) (*file.BlockId, error) {
+	dummyBlock := file.NewBlock(filename, -1)
+	if err := tx.cm.XLock(*dummyBlock); err != nil {
+		return nil, err
+	}
+	return tx.fm.Append(filename)
 }
 
 func (tx *Transaction) BlockSize() int {

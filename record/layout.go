@@ -6,12 +6,12 @@ import (
 )
 
 type Layout struct {
-	schema   Schema
+	schema   *Schema
 	offsets  map[string]int
 	slotSize int
 }
 
-func NewLayout(schema Schema) Layout {
+func NewLayout(schema *Schema) Layout {
 	offsets := make(map[string]int)
 	offset := 0
 	for _, fldName := range schema.Fields() {
@@ -25,7 +25,7 @@ func NewLayout(schema Schema) Layout {
 	}
 }
 
-func NewLayout1(schema Schema, offsets map[string]int, slotSize int) Layout {
+func NewLayout1(schema *Schema, offsets map[string]int, slotSize int) Layout {
 	return Layout{
 		schema,
 		offsets,
@@ -33,7 +33,7 @@ func NewLayout1(schema Schema, offsets map[string]int, slotSize int) Layout {
 	}
 }
 
-func (layout Layout) Schema() Schema {
+func (layout Layout) Schema() *Schema {
 	return layout.schema
 }
 

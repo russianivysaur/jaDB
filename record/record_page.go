@@ -13,10 +13,10 @@ const (
 type RecordPage struct {
 	tx     *tx.Transaction
 	blk    *file.BlockId
-	layout Layout
+	layout *Layout
 }
 
-func NewRecordPage(tx *tx.Transaction, blk *file.BlockId, layout Layout) (*RecordPage, error) {
+func NewRecordPage(tx *tx.Transaction, blk *file.BlockId, layout *Layout) (*RecordPage, error) {
 	if err := tx.Pin(blk); err != nil {
 		return nil, err
 	}
@@ -27,22 +27,22 @@ func NewRecordPage(tx *tx.Transaction, blk *file.BlockId, layout Layout) (*Recor
 	}, nil
 }
 
-func (page *RecordPage) getInt(slot int, fldName string) (int, error) {
+func (page *RecordPage) GetInt(slot int, fldName string) (int, error) {
 	fldPos := page.offset(slot) + page.layout.offset(fldName)
 	return page.tx.GetInt(page.blk, fldPos)
 }
 
-func (page *RecordPage) getString(slot int, fldName string) (string, error) {
+func (page *RecordPage) GetString(slot int, fldName string) (string, error) {
 	fldPos := page.offset(slot) + page.layout.offset(fldName)
 	return page.tx.GetString(page.blk, fldPos)
 }
 
-func (page *RecordPage) setInt(slot int, fldName string, val int) error {
+func (page *RecordPage) SetInt(slot int, fldName string, val int) error {
 	fldPos := page.offset(slot) + page.layout.offset(fldName)
 	return page.tx.SetInt(page.blk, fldPos, val, true)
 }
 
-func (page *RecordPage) setString(slot int, fldName string, val string) error {
+func (page *RecordPage) SetString(slot int, fldName string, val string) error {
 	fldPos := page.offset(slot) + page.layout.offset(fldName)
 	return page.tx.SetString(page.blk, fldPos, val, true)
 }
@@ -51,7 +51,7 @@ func (page *RecordPage) delete(slot int) error {
 	return page.setFlag(slot, EMPTY)
 }
 
-func (page *RecordPage) format() error {
+func (page *RecordPage) Format() error {
 	slot := 0
 	for page.isValidSlot(slot) {
 		if err := page.tx.SetInt(page.blk, page.offset(slot), EMPTY, false); err != nil {
@@ -75,7 +75,7 @@ func (page *RecordPage) format() error {
 	return nil
 }
 
-func (page *RecordPage) nextAfter(slot int) int {
+func (page *RecordPage) NextAfter(slot int) int {
 	return page.searchAfter(slot, USED)
 }
 
@@ -89,7 +89,7 @@ func (page *RecordPage) insertAfter(slot int) (int, error) {
 	return newSlot, nil
 }
 
-func (page *RecordPage) block() *file.BlockId {
+func (page *RecordPage) Block() *file.BlockId {
 	return page.blk
 }
 
