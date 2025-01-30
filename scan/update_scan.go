@@ -4,11 +4,11 @@ import "justanotherdb/record"
 
 type UpdateScan interface {
 	Scan
-	SetInt(string, int)
-	SetString(string, string)
-	SetVal(string, any)
-	Insert()
-	Delete()
-	GetRid()
-	MoveToRid(record.RID)
+	SetInt(string, int) error
+	SetString(string, string) error
+	SetVal(string, any) error
+	Insert() error
+	Delete() error
+	GetRid() record.RID
+	MoveToRid(record.RID) error
 }

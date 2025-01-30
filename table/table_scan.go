@@ -95,6 +95,70 @@ func (ts *TableScan) HasField(fldname string) bool {
 	return ts.layout.Schema().HasField(fldname)
 }
 
+func (ts *TableScan) SetInt(fldname string, val int) error {
+	return ts.rp.SetInt(ts.currentSlot, fldname, val)
+}
+
+func (ts *TableScan) SetString(fldname string, val string) error {
+	return ts.rp.SetString(ts.currentSlot, fldname, val)
+}
+
+func (ts *TableScan) SetVal(fldname string, val any) error {
+	if ts.layout.Schema().Type(fldname) == record.INTEGER {
+		return ts.SetInt(fldname, val.(int))
+	} else {
+		return ts.SetString(fldname, val.(string))
+	}
+}
+
+func (ts *TableScan) Insert() error {
+	var err error
+	ts.currentSlot, err = ts.rp.InsertAfter(ts.currentSlot)
+	if err != nil {
+		return err
+	}
+	for ts.currentSlot < 0 {
+		atLast, err := ts.atLastBlock()
+		if err != nil {
+			return err
+		}
+		if atLast {
+			if err = ts.moveToNewBlock(); err != nil {
+				return err
+			}
+		} else {
+			if err = ts.moveToBlock(ts.rp.Block().GetBlockNumber() + 1); err != nil {
+				return err
+			}
+		}
+		ts.currentSlot, err = ts.rp.InsertAfter(ts.currentSlot)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (ts *TableScan) Delete() error {
+	return ts.rp.Delete(ts.currentSlot)
+}
+
+func (ts *TableScan) MoveToRid(rid record.RID) error {
+	ts.Close()
+	block := file.NewBlock(ts.filename, rid.BlockNumber())
+	var err error
+	ts.rp, err = record.NewRecordPage(ts.tx, block, ts.layout)
+	if err != nil {
+		return err
+	}
+	ts.currentSlot = rid.Slot()
+	return nil
+}
+
+func (ts *TableScan) GetRid() record.RID {
+	return record.NewRID(ts.rp.Block().GetBlockNumber(), ts.currentSlot)
+}
+
 func (ts *TableScan) moveToNewBlock() error {
 	ts.Close()
 	block, err := ts.tx.Append(ts.filename)

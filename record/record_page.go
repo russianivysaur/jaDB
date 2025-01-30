@@ -47,7 +47,7 @@ func (page *RecordPage) SetString(slot int, fldName string, val string) error {
 	return page.tx.SetString(page.blk, fldPos, val, true)
 }
 
-func (page *RecordPage) delete(slot int) error {
+func (page *RecordPage) Delete(slot int) error {
 	return page.setFlag(slot, EMPTY)
 }
 
@@ -79,7 +79,7 @@ func (page *RecordPage) NextAfter(slot int) int {
 	return page.searchAfter(slot, USED)
 }
 
-func (page *RecordPage) insertAfter(slot int) (int, error) {
+func (page *RecordPage) InsertAfter(slot int) (int, error) {
 	newSlot := page.searchAfter(slot, EMPTY)
 	if newSlot >= 0 {
 		if err := page.setFlag(newSlot, USED); err != nil {
