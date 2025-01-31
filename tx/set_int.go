@@ -62,7 +62,7 @@ func (record *SetIntRecord) Undo(tx *Transaction) error {
 	if err := tx.SetInt(record.block, record.blockOffset, record.oldVal, false); err != nil {
 		return err
 	}
-	tx.unpin(record.block)
+	tx.Unpin(record.block)
 	return nil
 }
 

@@ -18,8 +18,8 @@ func TestSchema(t *testing.T) {
 	assert.Equal(constants.IntSize, schema.Length("testInt"))
 	assert.Equal(80, schema.Length("testString"))
 
-	assert.Equal(false, schema.hasField("idk"))
-	assert.Equal(true, schema.hasField("testInt"))
+	assert.Equal(false, schema.HasField("idk"))
+	assert.Equal(true, schema.HasField("testInt"))
 
 	assert.Equal(INTEGER, schema.Type("testInt"))
 	assert.Equal(VARCHAR, schema.Type("testString"))
