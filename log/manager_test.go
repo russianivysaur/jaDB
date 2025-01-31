@@ -14,7 +14,7 @@ func TestLogManager(t *testing.T) {
 	assert := assertPkg.New(t)
 
 	tempDir := filepath.Join(os.TempDir(), "test")
-	blockSize := 400
+	blockSize := 100
 	fileManager, err := file.NewFileManager(tempDir, blockSize)
 
 	assert.NoErrorf(err, "could not create file manager : %v", err)

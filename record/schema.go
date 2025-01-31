@@ -2,6 +2,7 @@ package record
 
 import (
 	"justanotherdb/constants"
+	"justanotherdb/file"
 )
 
 type Schema struct {
@@ -26,7 +27,7 @@ func (schema *Schema) AddIntField(fldName string) {
 }
 
 func (schema *Schema) AddStringField(fldName string, length int) {
-	schema.addField(fldName, VARCHAR, length)
+	schema.addField(fldName, VARCHAR, file.MaxLength(length))
 }
 
 func (schema *Schema) Add(fldName string, sch *Schema) {

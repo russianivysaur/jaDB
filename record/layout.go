@@ -13,7 +13,7 @@ type Layout struct {
 
 func NewLayout(schema *Schema) Layout {
 	offsets := make(map[string]int)
-	offset := 0
+	offset := constants.IntSize // flag accountability
 	for _, fldName := range schema.Fields() {
 		offsets[fldName] = offset
 		offset += schema.Length(fldName)
