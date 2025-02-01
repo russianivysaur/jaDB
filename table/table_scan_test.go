@@ -1,6 +1,7 @@
 package table
 
 import (
+	"fmt"
 	assertPkg "github.com/stretchr/testify/assert"
 	"justanotherdb/buffer"
 	"justanotherdb/concurrency"
@@ -35,7 +36,7 @@ func initEnv(assert *assertPkg.Assertions) {
 	assert.NoError(err)
 	lm, err := log.NewLogManager(fm, logFile)
 	assert.NoError(err)
-	bm, err := buffer.NewBufferManager(fm, lm, 10)
+	bm, err := buffer.NewBufferManager(fm, lm, 30)
 	assert.NoError(err)
 	lt := concurrency.NewLockTable()
 	env = TestEnv{
@@ -75,20 +76,45 @@ func TestTableScan(t *testing.T) {
 		name string
 		age  int
 	}
-	rec := Record{1, "ankit", 22}
+	recCount := 20
 	ts, err := NewTableScan(txn, "test", &layout)
 	assert.NoError(err)
-	err = ts.Insert()
-	assert.NoError(err)
-	err = ts.SetInt(id, rec.id)
-	assert.NoError(err)
-	err = ts.SetString(name, rec.name)
-	assert.NoError(err)
-	err = ts.SetInt(age, rec.age)
-	assert.NoError(err)
-
+	for i := 0; i < recCount; i++ {
+		err = ts.Insert()
+		assert.NoError(err)
+		err = ts.SetInt(id, i)
+		assert.NoError(err)
+		err = ts.SetString(name, fmt.Sprintf("name is %d", i))
+		assert.NoError(err)
+		err = ts.SetInt(age, i)
+		assert.NoError(err)
+	}
 	err = txn.Commit()
 	assert.NoError(err)
+	ts.Close()
 
-	//clearEnv(t)
+	txn, err = tx.NewTransaction(env.fm, env.lm, env.bm, env.lt)
+	assert.NoError(err)
+	ts, err = NewTableScan(txn, "test", &layout)
+	assert.NoError(err)
+
+	// read data back out
+	for i := 0; i < recCount; i++ {
+		hasNext, err := ts.Next()
+		assert.NoError(err)
+		assert.Equal(true, hasNext)
+		actualId, err := ts.GetInt(id)
+		assert.NoError(err)
+		assert.Equal(i, actualId)
+		actualName, err := ts.GetString(name)
+		assert.NoError(err)
+		assert.Equal(fmt.Sprintf("name is %d", i), actualName)
+		actualAge, err := ts.GetInt(age)
+		assert.NoError(err)
+		assert.Equal(i, actualAge)
+	}
+
+	err = txn.Rollback()
+	assert.NoError(err)
+	clearEnv(t)
 }

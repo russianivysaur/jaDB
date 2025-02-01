@@ -28,22 +28,22 @@ func NewRecordPage(tx *tx.Transaction, blk *file.BlockId, layout *Layout) (*Reco
 }
 
 func (page *RecordPage) GetInt(slot int, fldName string) (int, error) {
-	fldPos := page.offset(slot) + page.layout.offset(fldName)
+	fldPos := page.offset(slot) + page.layout.Offset(fldName)
 	return page.tx.GetInt(page.blk, fldPos)
 }
 
 func (page *RecordPage) GetString(slot int, fldName string) (string, error) {
-	fldPos := page.offset(slot) + page.layout.offset(fldName)
+	fldPos := page.offset(slot) + page.layout.Offset(fldName)
 	return page.tx.GetString(page.blk, fldPos)
 }
 
 func (page *RecordPage) SetInt(slot int, fldName string, val int) error {
-	fldPos := page.offset(slot) + page.layout.offset(fldName)
+	fldPos := page.offset(slot) + page.layout.Offset(fldName)
 	return page.tx.SetInt(page.blk, fldPos, val, true)
 }
 
 func (page *RecordPage) SetString(slot int, fldName string, val string) error {
-	fldPos := page.offset(slot) + page.layout.offset(fldName)
+	fldPos := page.offset(slot) + page.layout.Offset(fldName)
 	return page.tx.SetString(page.blk, fldPos, val, true)
 }
 
@@ -59,7 +59,7 @@ func (page *RecordPage) Format() error {
 		}
 		sch := page.layout.Schema()
 		for _, fldName := range sch.Fields() {
-			fldPos := page.offset(slot) + page.layout.offset(fldName)
+			fldPos := page.offset(slot) + page.layout.Offset(fldName)
 			if sch.Type(fldName) == INTEGER {
 				if err := page.tx.SetInt(page.blk, fldPos, 0, false); err != nil {
 					return err

@@ -20,6 +20,6 @@ func TestLayout(t *testing.T) {
 	assert.Equalf(expectedSlotSize, layout.SlotSize(), "expected %d slot size, got %d",
 		expectedSlotSize, layout.SlotSize())
 	expectedOffset := constants.IntSize
-	assert.Equalf(expectedOffset, layout.offset("testInt2"), "expected offset %d,got %d",
-		expectedOffset, layout.offset("testInt2"))
+	assert.Equalf(expectedOffset, layout.Offset("testInt2"), "expected offset %d,got %d",
+		expectedOffset, layout.Offset("testInt2"))
 }

@@ -37,7 +37,7 @@ func (layout Layout) Schema() *Schema {
 	return layout.schema
 }
 
-func (layout Layout) offset(fldName string) int {
+func (layout Layout) Offset(fldName string) int {
 	return layout.offsets[fldName]
 }
 

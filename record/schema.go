@@ -17,21 +17,21 @@ func NewSchema() *Schema {
 	}
 }
 
-func (schema *Schema) addField(fldName string, fieldType int, length int) {
+func (schema *Schema) AddField(fldName string, fieldType int, length int) {
 	schema.fields = append(schema.fields, fldName)
 	schema.info[fldName] = NewFieldInfo(fieldType, length)
 }
 
 func (schema *Schema) AddIntField(fldName string) {
-	schema.addField(fldName, INTEGER, constants.IntSize)
+	schema.AddField(fldName, INTEGER, constants.IntSize)
 }
 
 func (schema *Schema) AddStringField(fldName string, length int) {
-	schema.addField(fldName, VARCHAR, file.MaxLength(length))
+	schema.AddField(fldName, VARCHAR, file.MaxLength(length))
 }
 
 func (schema *Schema) Add(fldName string, sch *Schema) {
-	schema.addField(fldName, sch.Type(fldName), sch.Length(fldName))
+	schema.AddField(fldName, sch.Type(fldName), sch.Length(fldName))
 }
 
 func (schema *Schema) AddAll(sch *Schema) {
