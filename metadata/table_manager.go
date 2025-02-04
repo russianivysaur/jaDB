@@ -2,9 +2,9 @@ package metadata
 
 import (
 	"fmt"
-	"justanotherdb/record"
-	"justanotherdb/table"
-	"justanotherdb/tx"
+	"jadb/record"
+	"jadb/table"
+	"jadb/tx"
 )
 
 const MAX_NAME = 16

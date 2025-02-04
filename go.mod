@@ -1,4 +1,4 @@
-module justanotherdb
+module jadb
 
 go 1.23.3
 

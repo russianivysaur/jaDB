@@ -1,9 +1,9 @@
 package metadata
 
 import (
-	"justanotherdb/record"
-	"justanotherdb/table"
-	"justanotherdb/tx"
+	"jadb/record"
+	"jadb/table"
+	"jadb/tx"
 	"sync"
 )
 

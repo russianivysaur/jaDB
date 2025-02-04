@@ -1,8 +1,8 @@
 package record
 
 import (
-	"justanotherdb/constants"
-	"justanotherdb/file"
+	"jadb/constants"
+	"jadb/file"
 )
 
 type Schema struct {

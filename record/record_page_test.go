@@ -2,12 +2,12 @@ package record
 
 import (
 	assertPkg "github.com/stretchr/testify/assert"
-	"justanotherdb/buffer"
-	"justanotherdb/concurrency"
-	"justanotherdb/constants"
-	"justanotherdb/file"
-	"justanotherdb/log"
-	"justanotherdb/tx"
+	"jadb/buffer"
+	"jadb/concurrency"
+	"jadb/constants"
+	"jadb/file"
+	"jadb/log"
+	"jadb/tx"
 	"os"
 	"path/filepath"
 	"testing"

@@ -3,8 +3,8 @@ package log
 import (
 	"fmt"
 	assertPkg "github.com/stretchr/testify/assert"
-	"justanotherdb/constants"
-	"justanotherdb/file"
+	"jadb/constants"
+	"jadb/file"
 	"os"
 	"path/filepath"
 	"testing"

@@ -3,7 +3,7 @@ package concurrency
 import (
 	"context"
 	assertPkg "github.com/stretchr/testify/assert"
-	"justanotherdb/file"
+	"jadb/file"
 	"sync"
 	"testing"
 	"time"

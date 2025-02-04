@@ -2,7 +2,7 @@ package record
 
 import (
 	assertPkg "github.com/stretchr/testify/assert"
-	"justanotherdb/constants"
+	"jadb/constants"
 	"testing"
 )
 

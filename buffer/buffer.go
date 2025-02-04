@@ -1,8 +1,8 @@
 package buffer
 
 import (
-	"justanotherdb/file"
-	"justanotherdb/log"
+	"jadb/file"
+	"jadb/log"
 )
 
 type Buffer struct {

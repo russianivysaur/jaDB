@@ -3,8 +3,8 @@ package buffer
 import (
 	"context"
 	"errors"
-	"justanotherdb/file"
-	"justanotherdb/log"
+	"jadb/file"
+	"jadb/log"
 	"sync"
 	"time"
 )

@@ -1,6 +1,6 @@
 package scan
 
-import "justanotherdb/record"
+import "jadb/record"
 
 type UpdateScan interface {
 	Scan

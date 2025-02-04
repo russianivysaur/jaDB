@@ -2,10 +2,10 @@ package tx
 
 import (
 	"fmt"
-	"justanotherdb/buffer"
-	"justanotherdb/concurrency"
-	"justanotherdb/file"
-	"justanotherdb/log"
+	"jadb/buffer"
+	"jadb/concurrency"
+	"jadb/file"
+	"jadb/log"
 	"sync"
 )
 

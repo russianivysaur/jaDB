@@ -1,6 +1,6 @@
 package index
 
-import "justanotherdb/record"
+import "jadb/record"
 
 type Index interface {
 	BeforeFirst(any)

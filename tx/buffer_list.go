@@ -1,8 +1,8 @@
 package tx
 
 import (
-	"justanotherdb/buffer"
-	"justanotherdb/file"
+	"jadb/buffer"
+	"jadb/file"
 )
 
 type pinnedBuffer struct {

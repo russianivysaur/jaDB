@@ -1,8 +1,8 @@
 package metadata
 
 import (
-	"justanotherdb/record"
-	"justanotherdb/tx"
+	"jadb/record"
+	"jadb/tx"
 )
 
 type MetadataManager struct {

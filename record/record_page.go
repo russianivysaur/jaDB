@@ -1,8 +1,8 @@
 package record
 
 import (
-	"justanotherdb/file"
-	"justanotherdb/tx"
+	"jadb/file"
+	"jadb/tx"
 )
 
 const (

@@ -3,8 +3,8 @@ package buffer
 import (
 	"context"
 	assertPkg "github.com/stretchr/testify/assert"
-	"justanotherdb/file"
-	"justanotherdb/log"
+	"jadb/file"
+	"jadb/log"
 	"os"
 	"path/filepath"
 	"sync"

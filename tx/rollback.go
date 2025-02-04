@@ -2,9 +2,9 @@ package tx
 
 import (
 	"fmt"
-	"justanotherdb/constants"
-	"justanotherdb/file"
-	"justanotherdb/log"
+	"jadb/constants"
+	"jadb/file"
+	"jadb/log"
 )
 
 type RollbackRecord struct {

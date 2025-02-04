@@ -1,8 +1,8 @@
 package tx
 
 import (
-	"justanotherdb/buffer"
-	"justanotherdb/log"
+	"jadb/buffer"
+	"jadb/log"
 )
 
 type RecoveryManager struct {

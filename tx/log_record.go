@@ -2,8 +2,8 @@ package tx
 
 import (
 	"fmt"
-	"justanotherdb/file"
-	"justanotherdb/log"
+	"jadb/file"
+	"jadb/log"
 )
 
 type LogRecordType int

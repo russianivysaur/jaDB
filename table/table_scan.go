@@ -1,10 +1,10 @@
 package table
 
 import (
-	"justanotherdb/file"
-	"justanotherdb/record"
-	"justanotherdb/scan"
-	"justanotherdb/tx"
+	"jadb/file"
+	"jadb/record"
+	"jadb/scan"
+	"jadb/tx"
 )
 
 var _ scan.UpdateScan = (*TableScan)(nil)
