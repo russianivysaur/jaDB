@@ -65,10 +65,10 @@ func (tblMgr *TableManager) createTable(tableName string, schema *record.Schema,
 	if ts, err = table.NewTableScan(txn, "fldcat", &tblMgr.fldCatalogLayout); err != nil {
 		return err
 	}
-	if err = ts.Insert(); err != nil {
-		return err
-	}
 	for _, field := range schema.Fields() {
+		if err = ts.Insert(); err != nil {
+			return err
+		}
 		if err = ts.SetString("fldname", field); err != nil {
 			return err
 		}
