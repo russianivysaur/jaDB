@@ -94,12 +94,10 @@ func (page *RecordPage) Block() *file.BlockId {
 }
 
 func (page *RecordPage) searchAfter(slot int, flag int) int {
-	slot++
-	for page.isValidSlot(slot) {
+	for slot += 1; page.isValidSlot(slot); slot++ {
 		if val, err := page.tx.GetInt(page.blk, page.offset(slot)); err == nil && val == flag {
 			return slot
 		}
-		slot++
 	}
 	return -1
 }

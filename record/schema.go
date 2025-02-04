@@ -3,6 +3,7 @@ package record
 import (
 	"jadb/constants"
 	"jadb/file"
+	"slices"
 )
 
 type Schema struct {
@@ -56,4 +57,18 @@ func (schema *Schema) Length(fldName string) int {
 func (schema *Schema) HasField(fldName string) bool {
 	_, exists := schema.info[fldName]
 	return exists
+}
+
+func (schema *Schema) Equals(schema1 *Schema) bool {
+	fields1 := schema.Fields()
+	fields2 := schema.Fields()
+	if !slices.Equal(fields1, fields2) {
+		return false
+	}
+	for i := range len(fields1) {
+		if schema.info[fields1[i]] != schema.info[fields2[i]] {
+			return false
+		}
+	}
+	return true
 }

@@ -150,7 +150,6 @@ func (tblMgr *TableManager) getLayout(tblname string, txn *tx.Transaction) (*rec
 		tblSchema.AddField(fldName, fldType, fldLength)
 		offsets[fldName] = fldOffset
 	}
-
 	tblLayout := record.NewLayout1(tblSchema, offsets, slotsize)
 	return &tblLayout, nil
 }

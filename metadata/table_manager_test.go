@@ -6,6 +6,7 @@ import (
 	"jadb/concurrency"
 	"jadb/file"
 	"jadb/log"
+	"jadb/record"
 	"jadb/tx"
 	"os"
 	"path/filepath"
@@ -23,9 +24,7 @@ type TestEnv struct {
 	lt        *concurrency.LockTable
 }
 
-var env TestEnv
-
-func initEnv(assert *assertPkg.Assertions) {
+func initEnv(assert *assertPkg.Assertions) TestEnv {
 	blockSize := 200
 	dbFile := "test.db"
 	logFile := "test.log"
@@ -39,22 +38,23 @@ func initEnv(assert *assertPkg.Assertions) {
 	lt := concurrency.NewLockTable()
 	err = os.MkdirAll(tempDir, 0755)
 	assert.NoError(err)
-	env = TestEnv{
+	return TestEnv{
 		dbFile, logFile, tempDir,
 		blockSize,
 		fm, lm, bm, lt,
 	}
 }
 
-func clearEnv(t *testing.T) {
+func clearEnv(t *testing.T, env TestEnv) {
 	if err := os.RemoveAll(env.tempDir); err != nil {
 		t.Error(err)
 	}
 }
 
+// TestNewTableManager : checks tblcat and fldcat entries in tblcat and fldcat itself
 func TestNewTableManager(t *testing.T) {
 	assert := assertPkg.New(t)
-	initEnv(assert)
+	env := initEnv(assert)
 	txn, err := tx.NewTransaction(env.fm, env.lm, env.bm, env.lt)
 	assert.NoError(err)
 	tableManager, err := NewTableManager(true, txn)
@@ -83,13 +83,32 @@ func TestNewTableManager(t *testing.T) {
 	err = txn.Commit()
 	assert.NoError(err)
 	//finish test
-	clearEnv(t)
+	clearEnv(t, env)
 }
 
-func TestCreateNewTable(t *testing.T) {
+func TestCreateSingleTable(t *testing.T) {
 	assert := assertPkg.New(t)
-	initEnv(assert)
+	env := initEnv(assert)
+	txn, err := tx.NewTransaction(env.fm, env.lm, env.bm, env.lt)
+	assert.NoError(err)
+	tblMgr, err := NewTableManager(true, txn)
+	assert.NoError(err)
+	tblName := "testtbl"
+	tblSchema := record.NewSchema()
+	tblSchema.AddIntField("id")
+	tblSchema.AddStringField("name", 10)
+	err = tblMgr.createTable(tblName, tblSchema, txn)
+	assert.NoError(err)
+	assert.NoError(txn.Commit())
 
-	clearEnv(t)
-
+	// check if tblcat and fldcat have those fields
+	txn, err = tx.NewTransaction(env.fm, env.lm, env.bm, env.lt)
+	assert.NoError(err)
+	tblMgr, err = NewTableManager(false, txn)
+	assert.NoError(err)
+	layout, err := tblMgr.getLayout(tblName, txn)
+	assert.NoError(err)
+	schema := layout.Schema()
+	assert.True(schema.Equals(tblSchema))
+	clearEnv(t, env)
 }
