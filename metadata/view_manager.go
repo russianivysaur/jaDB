@@ -29,7 +29,7 @@ func NewViewManager(isNew bool, tblMgr *TableManager, txn *tx.Transaction) (*Vie
 }
 
 func (manager *ViewManager) createView(viewName string, viewDef string, txn *tx.Transaction) error {
-	layout, err := manager.tblMgr.GetLayout("viewcat", txn)
+	layout, err := manager.tblMgr.getLayout("viewcat", txn)
 	if err != nil {
 		return err
 	}
@@ -50,8 +50,8 @@ func (manager *ViewManager) createView(viewName string, viewDef string, txn *tx.
 	return nil
 }
 
-func (manager *ViewManager) GetViewDef(viewName string, txn *tx.Transaction) (string, error) {
-	viewCatalogLayout, err := manager.tblMgr.GetLayout("viewcat", txn)
+func (manager *ViewManager) getViewDef(viewName string, txn *tx.Transaction) (string, error) {
+	viewCatalogLayout, err := manager.tblMgr.getLayout("viewcat", txn)
 	if err != nil {
 		return "", err
 	}

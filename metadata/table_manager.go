@@ -89,7 +89,7 @@ func (tblMgr *TableManager) createTable(tableName string, schema *record.Schema,
 	return nil
 }
 
-func (tblMgr *TableManager) GetLayout(tblname string, txn *tx.Transaction) (*record.Layout, error) {
+func (tblMgr *TableManager) getLayout(tblname string, txn *tx.Transaction) (*record.Layout, error) {
 	slotsize := -1
 	// find table in tblCatalog
 	ts, err := table.NewTableScan(txn, "tblcat", &tblMgr.tableCatalogLayout)

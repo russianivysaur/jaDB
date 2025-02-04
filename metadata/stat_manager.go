@@ -25,13 +25,32 @@ func NewStatManager(tblMgr *TableManager, txn *tx.Transaction) (*StatManager, er
 	}
 	return sm, nil
 }
+func (manager *StatManager) getStatInfo(tableName string, layout *record.Layout, txn *tx.Transaction) (*StatInfo, error) {
+	manager.lock.Lock()
+	defer manager.lock.Unlock()
+	manager.numCalls++
+	if manager.numCalls > 100 {
+		if err := manager.refreshStatistics(txn); err != nil {
+			return nil, err
+		}
+	}
+	si, ok := manager.tableStats[tableName]
+	if !ok {
+		info, err := manager.calcTableStats(tableName, layout, txn)
+		if err != nil {
+			return nil, err
+		}
+		si = *info
+	}
+	return &si, nil
+}
 
 func (manager *StatManager) refreshStatistics(txn *tx.Transaction) error {
 	manager.lock.Lock()
 	defer manager.lock.Unlock()
 	manager.tableStats = make(map[string]StatInfo)
 	manager.numCalls = 0
-	tableCatalogLayout, err := manager.tblMgr.GetLayout("tblcat", txn)
+	tableCatalogLayout, err := manager.tblMgr.getLayout("tblcat", txn)
 	if err != nil {
 		return err
 	}
@@ -45,7 +64,7 @@ func (manager *StatManager) refreshStatistics(txn *tx.Transaction) error {
 		if err != nil {
 			return err
 		}
-		tableLayout, err := manager.tblMgr.GetLayout(tableName, txn)
+		tableLayout, err := manager.tblMgr.getLayout(tableName, txn)
 		if err != nil {
 			return err
 		}
