@@ -1,6 +1,7 @@
 package metadata
 
 import (
+	"fmt"
 	assertPkg "github.com/stretchr/testify/assert"
 	"jadb/buffer"
 	"jadb/concurrency"
@@ -25,7 +26,7 @@ type TestEnv struct {
 }
 
 func initEnv(assert *assertPkg.Assertions) TestEnv {
-	blockSize := 200
+	blockSize := 4096
 	dbFile := "test.db"
 	logFile := "test.log"
 	tempDir := filepath.Join(os.TempDir(), "temp")
@@ -116,6 +117,47 @@ func TestCreateSingleTable(t *testing.T) {
 func TestCreateMultipleTables(t *testing.T) {
 	assert := assertPkg.New(t)
 	env := initEnv(assert)
+	txn, err := tx.NewTransaction(env.fm, env.lm, env.bm, env.lt)
+	assert.NoError(err)
+
+	tableManager, err := NewTableManager(true, txn)
+	assert.NoError(err)
+
+	type Table struct {
+		name   string
+		schema *record.Schema
+	}
+	testCount := 100
+	columnCount := 3
+	tables := make([]Table, testCount)
+	for i := 0; i < testCount; i++ {
+		schema := record.NewSchema()
+		for j := 0; j < columnCount; j++ {
+			colName := fmt.Sprintf("col%d%d", j, i)
+			schema.AddStringField(colName, 10)
+		}
+		tables[i] = Table{
+			fmt.Sprintf("table%d", i),
+			schema,
+		}
+		err := tableManager.createTable(tables[i].name, schema, txn)
+		assert.NoError(err)
+	}
+
+	assert.NoError(txn.Commit())
+
+	// new transaction and read tables back in
+	txn, err = tx.NewTransaction(env.fm, env.lm, env.bm, env.lt)
+	assert.NoError(err)
+
+	tableManager, err = NewTableManager(false, txn)
+	assert.NoError(err)
+
+	for _, table := range tables {
+		layout, err := tableManager.getLayout(table.name, txn)
+		assert.NoError(err)
+		assert.True(layout.Schema().Equals(table.schema))
+	}
 
 	clearEnv(t, env)
 }
