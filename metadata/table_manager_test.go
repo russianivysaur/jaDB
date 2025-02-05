@@ -112,3 +112,10 @@ func TestCreateSingleTable(t *testing.T) {
 	assert.True(schema.Equals(tblSchema))
 	clearEnv(t, env)
 }
+
+func TestCreateMultipleTables(t *testing.T) {
+	assert := assertPkg.New(t)
+	env := initEnv(assert)
+
+	clearEnv(t, env)
+}

@@ -1,6 +1,7 @@
 package metadata
 
 import (
+	"fmt"
 	assertPkg "github.com/stretchr/testify/assert"
 	"jadb/buffer"
 	"jadb/concurrency"
@@ -84,6 +85,55 @@ func TestAddNewView(t *testing.T) {
 	assert.NoError(err)
 	assert.Equal(testViewDef, viewDef)
 	assert.NoError(txn.Commit())
+
+	clearEnv(t, env)
+}
+
+func TestAddMultipleViews(t *testing.T) {
+	assert := assertPkg.New(t)
+	env := initViewEnv(assert)
+	txn, err := tx.NewTransaction(env.fm, env.lm, env.bm, env.lt)
+	assert.NoError(err)
+
+	tableManager, err := NewTableManager(true, txn)
+	assert.NoError(err)
+
+	viewManager, err := NewViewManager(true, tableManager, txn)
+	assert.NoError(err)
+	type View struct {
+		name string
+		def  string
+	}
+
+	testCount := 100
+	views := make([]View, testCount)
+	for i := 0; i < testCount; i++ {
+		views[i] = View{
+			fmt.Sprintf("view %d", i),
+			fmt.Sprintf("view def %d", i),
+		}
+		err = viewManager.createView(views[i].name, views[i].def, txn)
+		assert.NoError(err)
+	}
+
+	//commit txn
+	assert.NoError(txn.Commit())
+
+	txn, err = tx.NewTransaction(env.fm, env.lm, env.bm, env.lt)
+	assert.NoError(err)
+
+	// read back views in view cat
+	tableManager, err = NewTableManager(false, txn)
+	assert.NoError(err)
+	viewManager, err = NewViewManager(false, tableManager, txn)
+	assert.NoError(err)
+	for i := 0; i < testCount; i++ {
+		viewDef, err := viewManager.getViewDef(views[i].name, txn)
+		assert.NoError(err)
+		assert.Equal(views[i].def, viewDef)
+	}
+
+	assert.NoError(txn.Rollback())
 
 	clearEnv(t, env)
 }
