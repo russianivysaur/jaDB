@@ -8,10 +8,11 @@ import (
 )
 
 type StatManager struct {
-	tblMgr     *TableManager
-	numCalls   int
-	tableStats map[string]StatInfo
-	lock       sync.Mutex
+	tblMgr      *TableManager
+	numCalls    int
+	tableStats  map[string]StatInfo
+	refreshLock sync.Mutex
+	infoLock    sync.Mutex
 }
 
 func NewStatManager(tblMgr *TableManager, txn *tx.Transaction) (*StatManager, error) {
@@ -26,8 +27,8 @@ func NewStatManager(tblMgr *TableManager, txn *tx.Transaction) (*StatManager, er
 	return sm, nil
 }
 func (manager *StatManager) getStatInfo(tableName string, layout *record.Layout, txn *tx.Transaction) (*StatInfo, error) {
-	manager.lock.Lock()
-	defer manager.lock.Unlock()
+	manager.infoLock.Lock()
+	defer manager.infoLock.Unlock()
 	manager.numCalls++
 	if manager.numCalls > 100 {
 		if err := manager.refreshStatistics(txn); err != nil {
@@ -46,8 +47,8 @@ func (manager *StatManager) getStatInfo(tableName string, layout *record.Layout,
 }
 
 func (manager *StatManager) refreshStatistics(txn *tx.Transaction) error {
-	manager.lock.Lock()
-	defer manager.lock.Unlock()
+	manager.refreshLock.Lock()
+	defer manager.refreshLock.Unlock()
 	manager.tableStats = make(map[string]StatInfo)
 	manager.numCalls = 0
 	tableCatalogLayout, err := manager.tblMgr.getLayout("tblcat", txn)
@@ -75,10 +76,13 @@ func (manager *StatManager) refreshStatistics(txn *tx.Transaction) error {
 		manager.tableStats[tableName] = *si
 		hasNext, err = ts.Next()
 	}
+	ts.Close()
 	return nil
 }
 
-func (manager *StatManager) calcTableStats(tableName string, tableLayout *record.Layout, txn *tx.Transaction) (*StatInfo, error) {
+func (manager *StatManager) calcTableStats(tableName string,
+	tableLayout *record.Layout,
+	txn *tx.Transaction) (*StatInfo, error) {
 	numRecords := 0
 	numBlocks := 0
 	ts, err := table.NewTableScan(txn, tableName, tableLayout)

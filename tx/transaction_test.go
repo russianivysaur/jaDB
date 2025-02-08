@@ -226,3 +226,32 @@ func tx(responseChannel chan<- error,
 	}
 	responseChannel <- err
 }
+
+func TestTransactionWriteAndRewrite(t *testing.T) {
+	assert := assertPkg.New(t)
+	env := initEnv(t)
+
+	txn, err := NewTransaction(env.fm, env.lm, env.bm, env.lt)
+	assert.NoError(err)
+
+	block, err := txn.Append(env.dbFile)
+	assert.NoError(err)
+
+	_, err = txn.GetInt(block, 0)
+	assert.NoError(err)
+	assert.NoError(txn.SetInt(block, 0, 90, true))
+	assert.NoError(txn.Commit())
+
+	txn, err = NewTransaction(env.fm, env.lm, env.bm, env.lt)
+	assert.NoError(err)
+	value, err := txn.GetInt(block, 0)
+	assert.NoError(err)
+	assert.Equal(value, 90)
+
+	assert.NoError(txn.SetInt(block, 0, 30, true))
+	assert.NoError(txn.Commit())
+
+	if err := os.RemoveAll(env.tempDir); err != nil {
+		t.Error(err)
+	}
+}

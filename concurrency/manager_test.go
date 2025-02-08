@@ -114,7 +114,7 @@ func TestConcurrencyManager(t *testing.T) {
 				err = cm.SLock(block)
 				wg.Done()
 				time.Sleep(time.Second * 5)
-				cm.release()
+				cm.Release()
 			}()
 		}
 		wg.Wait()

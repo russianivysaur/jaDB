@@ -1,6 +1,8 @@
 package concurrency
 
-import "jadb/file"
+import (
+	"jadb/file"
+)
 
 type Manager struct {
 	lockTable *LockTable

@@ -118,7 +118,7 @@ func TestStatsUpdateAfter100Calls(t *testing.T) {
 	ts, err := table.NewTableScan(txn, testTableName, &testTableLayout)
 	assert.NoError(err)
 
-	testRecordCount := 1000
+	testRecordCount := 100
 	requiredBytes := testTableLayout.SlotSize() * testRecordCount
 	requiredBlocks := int(requiredBytes / env.blockSize)
 	if requiredBytes%env.blockSize > 0 {
@@ -143,32 +143,42 @@ func TestStatsUpdateAfter100Calls(t *testing.T) {
 	statsManager, err := NewStatManager(tableManager, txn)
 	assert.NoError(err)
 
+	ts, err = table.NewTableScan(txn, testTableName, &testTableLayout)
+	assert.NoError(err)
 	// add more records in the table
-	txn1, err := tx.NewTransaction(env.fm, env.lm, env.bm, env.lt)
-	assert.NoError(err)
-	ts, err = table.NewTableScan(txn1, testTableName, &testTableLayout)
-	assert.NoError(err)
 
-	extraRecordsCount := 400
-	for i := 300; i < extraRecordsCount; i++ {
+	extraRecordsCount := 300
+	extraBytes := extraRecordsCount * testTableLayout.SlotSize()
+	extraBlocks := extraBytes / env.blockSize
+	if extraBytes%env.blockSize != 0 {
+		extraBlocks++
+	}
+	for i := 0; i < extraRecordsCount; i++ {
 		assert.NoError(ts.Insert())
 		assert.NoError(ts.SetInt("id", i+1))
 		assert.NoError(ts.SetString("name", fmt.Sprintf("name%d", i+1)))
 		assert.NoError(ts.SetInt("age", i+1))
 	}
 	ts.Close()
-	assert.NoError(txn1.Commit())
 
 	//check if stats manager shows old stats
-	testTableStats, err := statsManager.getStatInfo(testTableName, &testTableLayout, txn)
+	//100 calls
+	var testTableStats *StatInfo
+	for i := 0; i < 100; i++ {
+		testTableStats, err := statsManager.getStatInfo(testTableName, &testTableLayout, txn)
+		assert.NoError(err)
+
+		assert.Equal(testTableStats.numRecs, testRecordCount)
+		assert.Equal(testTableStats.numBlocks, requiredBlocks)
+	}
+
+	//should refresh stats on 101th call
+	testTableStats, err = statsManager.getStatInfo(testTableName, &testTableLayout, txn)
 	assert.NoError(err)
 
-	assert.Equal(testTableStats.numRecs, testRecordCount)
-	assert.Equal(testTableStats.numBlocks, requiredBlocks)
-	// 99 remaining calls to stats manager
-	for i := 0; i < 99; i++ {
-
-	}
+	assert.Equal(testTableStats.numRecs, testRecordCount+extraRecordsCount)
+	assert.Equal(testTableStats.numBlocks, requiredBlocks+extraBlocks)
+	assert.NoError(txn.Commit())
 
 	clearEnv(t, env)
 }
