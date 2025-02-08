@@ -84,7 +84,19 @@ func (manager *IndexManager) getIndexInfo(tblName string, txn *tx.Transaction) (
 		if err != nil {
 			return nil, err
 		}
-		result[fieldName] = NewIndexInfo()
+		idxName, err := ts.GetString("idxname")
+		if err != nil {
+			return nil, err
+		}
+		tableLayout, err := manager.tblMgr.getLayout(tableName, txn)
+		if err != nil {
+			return nil, err
+		}
+		si, err := manager.statMgr.getStatInfo(tableName, tableLayout, txn)
+		if err != nil {
+			return nil, err
+		}
+		result[fieldName] = NewIndexInfo(idxName, fieldName, tableLayout, txn, si)
 	}
 	return result, nil
 }

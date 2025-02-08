@@ -12,10 +12,14 @@ func NewRID(blockNumber int, slot int) RID {
 	}
 }
 
-func (rid RID) BlockNumber() int {
+func (rid *RID) BlockNumber() int {
 	return rid.blockNumber
 }
 
-func (rid RID) Slot() int {
+func (rid *RID) Slot() int {
 	return rid.slot
+}
+
+func (rid *RID) Equals(rid2 *RID) bool {
+	return rid.blockNumber == rid2.blockNumber && rid.slot == rid2.slot
 }
