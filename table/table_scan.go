@@ -143,7 +143,7 @@ func (ts *TableScan) Delete() error {
 	return ts.rp.Delete(ts.currentSlot)
 }
 
-func (ts *TableScan) MoveToRid(rid record.RID) error {
+func (ts *TableScan) MoveToRid(rid *record.RID) error {
 	ts.Close()
 	block := file.NewBlock(ts.filename, rid.BlockNumber())
 	var err error
@@ -155,7 +155,7 @@ func (ts *TableScan) MoveToRid(rid record.RID) error {
 	return nil
 }
 
-func (ts *TableScan) GetRid() record.RID {
+func (ts *TableScan) GetRid() *record.RID {
 	return record.NewRID(ts.rp.Block().GetBlockNumber(), ts.currentSlot)
 }
 

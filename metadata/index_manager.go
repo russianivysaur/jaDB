@@ -57,6 +57,8 @@ func (manager *IndexManager) createIndex(idxName string, tblName string, fldName
 	return nil
 }
 
+// getIndexInfo
+// get all the indexes of a table
 func (manager *IndexManager) getIndexInfo(tblName string, txn *tx.Transaction) (map[string]IndexInfo, error) {
 	indexCatalogLayout, err := manager.tblMgr.getLayout("idxcat", txn)
 	if err != nil {
@@ -84,7 +86,7 @@ func (manager *IndexManager) getIndexInfo(tblName string, txn *tx.Transaction) (
 		if err != nil {
 			return nil, err
 		}
-		idxName, err := ts.GetString("idxname")
+		idxName, err := ts.GetString("indexname")
 		if err != nil {
 			return nil, err
 		}

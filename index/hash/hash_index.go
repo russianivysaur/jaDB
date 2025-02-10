@@ -24,7 +24,11 @@ type HashIndex struct {
 func (h *HashIndex) BeforeFirst(searchKey any) error {
 	h.Close()
 	h.searchKey = searchKey
-	bucket := utils.HashCode(searchKey) % NUM_BUCKETS
+	hashCode, err := utils.HashCode(searchKey)
+	if err != nil {
+		return err
+	}
+	bucket := hashCode % NUM_BUCKETS
 	tblName := fmt.Sprintf("%s%d", h.idxName, bucket)
 	ts, err := table.NewTableScan(h.txn, tblName, h.layout)
 	if err != nil {
@@ -39,7 +43,11 @@ func (h *HashIndex) Next() (bool, error) {
 		if err != nil {
 			return false, err
 		}
-		if h.ts.GetVal("dataval") == h.searchKey {
+		val, err := h.ts.GetVal("dataval")
+		if err != nil {
+			return false, err
+		}
+		if val == h.searchKey {
 			return true, nil
 		}
 	}
@@ -56,7 +64,7 @@ func (h *HashIndex) GetDataRid() (*record.RID, error) {
 		return nil, err
 	}
 	rid := record.NewRID(blockNumber, id)
-	return &rid, nil
+	return rid, nil
 }
 
 func (h *HashIndex) Insert(val any, rid *record.RID) error {

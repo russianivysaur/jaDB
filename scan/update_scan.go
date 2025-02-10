@@ -9,6 +9,6 @@ type UpdateScan interface {
 	SetVal(string, any) error
 	Insert() error
 	Delete() error
-	GetRid() record.RID
-	MoveToRid(record.RID) error
+	GetRid() *record.RID
+	MoveToRid(*record.RID) error
 }

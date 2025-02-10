@@ -8,12 +8,12 @@ import (
 )
 
 type IndexInfo struct {
-	idxName   string
-	fldName   string
-	tblSchema *record.Schema
-	idxLayout *record.Layout
-	txn       *tx.Transaction
-	si        *StatInfo
+	idxName     string
+	fldName     string
+	tableSchema *record.Schema
+	indexLayout *record.Layout
+	txn         *tx.Transaction
+	si          *StatInfo
 }
 
 func NewIndexInfo(idxName string, fldName string, tableLayout *record.Layout, txn *tx.Transaction,
@@ -27,11 +27,11 @@ func NewIndexInfo(idxName string, fldName string, tableLayout *record.Layout, tx
 }
 
 func (info IndexInfo) open() index.Index {
-	return hash.NewHashIndex(info.txn, info.idxName, info.idxLayout)
+	return hash.NewHashIndex(info.txn, info.idxName, info.indexLayout)
 }
 
 func (info IndexInfo) blocksAccessed() int {
-	rpb := info.txn.BlockSize() / info.idxLayout.SlotSize()
+	rpb := info.txn.BlockSize() / info.indexLayout.SlotSize()
 	numBlocks := info.si.RecordsOutput() / rpb
 	return hash.SearchCost(numBlocks, rpb)
 }

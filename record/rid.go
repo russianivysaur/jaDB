@@ -5,8 +5,8 @@ type RID struct {
 	slot        int
 }
 
-func NewRID(blockNumber int, slot int) RID {
-	return RID{
+func NewRID(blockNumber int, slot int) *RID {
+	return &RID{
 		blockNumber,
 		slot,
 	}
