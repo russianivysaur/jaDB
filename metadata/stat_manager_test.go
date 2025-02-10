@@ -57,7 +57,7 @@ func TestStatManager(t *testing.T) {
 	assert.NoError(err)
 
 	testTableLayout := record.NewLayout(testTableSchema)
-	ts, err := table.NewTableScan(txn, testTableName, &testTableLayout)
+	ts, err := table.NewTableScan(txn, testTableName, testTableLayout)
 	assert.NoError(err)
 
 	testRecordCount := 1000
@@ -85,7 +85,7 @@ func TestStatManager(t *testing.T) {
 	statsManager, err := NewStatManager(tableManager, txn)
 	assert.NoError(err)
 
-	testTableStats, err := statsManager.getStatInfo(testTableName, &testTableLayout, txn)
+	testTableStats, err := statsManager.getStatInfo(testTableName, testTableLayout, txn)
 	assert.NoError(err)
 
 	assert.Equal(testTableStats.numRecs, testRecordCount)
@@ -115,7 +115,7 @@ func TestStatsUpdateAfter100Calls(t *testing.T) {
 	assert.NoError(err)
 
 	testTableLayout := record.NewLayout(testTableSchema)
-	ts, err := table.NewTableScan(txn, testTableName, &testTableLayout)
+	ts, err := table.NewTableScan(txn, testTableName, testTableLayout)
 	assert.NoError(err)
 
 	testRecordCount := 100
@@ -143,7 +143,7 @@ func TestStatsUpdateAfter100Calls(t *testing.T) {
 	statsManager, err := NewStatManager(tableManager, txn)
 	assert.NoError(err)
 
-	ts, err = table.NewTableScan(txn, testTableName, &testTableLayout)
+	ts, err = table.NewTableScan(txn, testTableName, testTableLayout)
 	assert.NoError(err)
 	// add more records in the table
 
@@ -165,7 +165,7 @@ func TestStatsUpdateAfter100Calls(t *testing.T) {
 	//100 calls
 	var testTableStats *StatInfo
 	for i := 0; i < 100; i++ {
-		testTableStats, err := statsManager.getStatInfo(testTableName, &testTableLayout, txn)
+		testTableStats, err := statsManager.getStatInfo(testTableName, testTableLayout, txn)
 		assert.NoError(err)
 
 		assert.Equal(testTableStats.numRecs, testRecordCount)
@@ -173,7 +173,7 @@ func TestStatsUpdateAfter100Calls(t *testing.T) {
 	}
 
 	//should refresh stats on 101th call
-	testTableStats, err = statsManager.getStatInfo(testTableName, &testTableLayout, txn)
+	testTableStats, err = statsManager.getStatInfo(testTableName, testTableLayout, txn)
 	assert.NoError(err)
 
 	assert.Equal(testTableStats.numRecs, testRecordCount+extraRecordsCount)

@@ -26,7 +26,7 @@ func NewIndexInfo(idxName string, fldName string, tableLayout *record.Layout, tx
 	}
 }
 
-func (info IndexInfo) open() index.Index {
+func (info IndexInfo) Open() index.Index {
 	return hash.NewHashIndex(info.txn, info.idxName, info.indexLayout)
 }
 
@@ -56,6 +56,5 @@ func createIdxLayout(tableLayout *record.Layout, fldName string) *record.Layout 
 	} else {
 		schema.AddStringField("dataval", tableLayout.Schema().Length(fldName))
 	}
-	l := record.NewLayout(schema)
-	return &l
+	return record.NewLayout(schema)
 }

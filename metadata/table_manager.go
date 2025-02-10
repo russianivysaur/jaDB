@@ -10,8 +10,8 @@ import (
 const MAX_NAME = 16
 
 type TableManager struct {
-	tableCatalogLayout record.Layout
-	fldCatalogLayout   record.Layout
+	tableCatalogLayout *record.Layout
+	fldCatalogLayout   *record.Layout
 }
 
 func NewTableManager(isNew bool, txn *tx.Transaction) (*TableManager, error) {
@@ -46,7 +46,7 @@ func NewTableManager(isNew bool, txn *tx.Transaction) (*TableManager, error) {
 func (tblMgr *TableManager) createTable(tableName string, schema *record.Schema, txn *tx.Transaction) error {
 	// add entry in table catalog
 	tblLayout := record.NewLayout(schema)
-	ts, err := table.NewTableScan(txn, "tblcat", &tblMgr.tableCatalogLayout)
+	ts, err := table.NewTableScan(txn, "tblcat", tblMgr.tableCatalogLayout)
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func (tblMgr *TableManager) createTable(tableName string, schema *record.Schema,
 	ts.Close()
 
 	//add entries into field catalog
-	if ts, err = table.NewTableScan(txn, "fldcat", &tblMgr.fldCatalogLayout); err != nil {
+	if ts, err = table.NewTableScan(txn, "fldcat", tblMgr.fldCatalogLayout); err != nil {
 		return err
 	}
 	for _, field := range schema.Fields() {
@@ -92,7 +92,7 @@ func (tblMgr *TableManager) createTable(tableName string, schema *record.Schema,
 func (tblMgr *TableManager) getLayout(tblname string, txn *tx.Transaction) (*record.Layout, error) {
 	slotsize := -1
 	// find table in tblCatalog
-	ts, err := table.NewTableScan(txn, "tblcat", &tblMgr.tableCatalogLayout)
+	ts, err := table.NewTableScan(txn, "tblcat", tblMgr.tableCatalogLayout)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (tblMgr *TableManager) getLayout(tblname string, txn *tx.Transaction) (*rec
 	}
 
 	//get all the fields of the table
-	ts, err = table.NewTableScan(txn, "fldcat", &tblMgr.fldCatalogLayout)
+	ts, err = table.NewTableScan(txn, "fldcat", tblMgr.fldCatalogLayout)
 	if err != nil {
 		return nil, err
 	}

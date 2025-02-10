@@ -11,14 +11,14 @@ type Layout struct {
 	slotSize int
 }
 
-func NewLayout(schema *Schema) Layout {
+func NewLayout(schema *Schema) *Layout {
 	offsets := make(map[string]int)
 	offset := constants.IntSize // flag accountability
 	for _, fldName := range schema.Fields() {
 		offsets[fldName] = offset
 		offset += schema.Length(fldName)
 	}
-	return Layout{
+	return &Layout{
 		schema:   schema,
 		offsets:  offsets,
 		slotSize: offset,
@@ -33,19 +33,19 @@ func NewLayout1(schema *Schema, offsets map[string]int, slotSize int) Layout {
 	}
 }
 
-func (layout Layout) Schema() *Schema {
+func (layout *Layout) Schema() *Schema {
 	return layout.schema
 }
 
-func (layout Layout) Offset(fldName string) int {
+func (layout *Layout) Offset(fldName string) int {
 	return layout.offsets[fldName]
 }
 
-func (layout Layout) SlotSize() int {
+func (layout *Layout) SlotSize() int {
 	return layout.slotSize
 }
 
-func (layout Layout) lengthInBytes(fldName string) int {
+func (layout *Layout) lengthInBytes(fldName string) int {
 	fldType := layout.schema.Type(fldName)
 	if fldType == INTEGER {
 		return constants.IntSize

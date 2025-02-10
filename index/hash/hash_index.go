@@ -11,7 +11,7 @@ import (
 
 var _ index.Index = (*HashIndex)(nil)
 
-const NUM_BUCKETS = 100
+const NUM_BUCKETS = 20
 
 type HashIndex struct {
 	txn       *tx.Transaction
@@ -19,6 +19,15 @@ type HashIndex struct {
 	layout    *record.Layout
 	searchKey any
 	ts        *table.TableScan
+}
+
+func NewHashIndex(txn *tx.Transaction, idxName string, layout *record.Layout) *HashIndex {
+	return &HashIndex{
+		txn,
+		idxName,
+		layout,
+		nil, nil,
+	}
 }
 
 func (h *HashIndex) BeforeFirst(searchKey any) error {
@@ -110,15 +119,6 @@ func (h *HashIndex) Delete(key any, rid *record.RID) error {
 func (h *HashIndex) Close() {
 	if h.ts != nil {
 		h.ts.Close()
-	}
-}
-
-func NewHashIndex(txn *tx.Transaction, idxName string, layout *record.Layout) *HashIndex {
-	return &HashIndex{
-		txn,
-		idxName,
-		layout,
-		nil, nil,
 	}
 }
 
