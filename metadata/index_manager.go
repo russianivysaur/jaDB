@@ -2,7 +2,7 @@ package metadata
 
 import (
 	"jadb/record"
-	"jadb/table"
+	"jadb/scan"
 	"jadb/tx"
 )
 
@@ -35,7 +35,7 @@ func NewIndexManager(isNew bool, tblMgr *TableManager, statMgr *StatManager, txn
 }
 
 func (manager *IndexManager) createIndex(idxName string, tblName string, fldName string, txn *tx.Transaction) error {
-	ts, err := table.NewTableScan(txn, "idxcat", manager.layout)
+	ts, err := scan.NewTableScan(txn, "idxcat", manager.layout)
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func (manager *IndexManager) getIndexInfo(tblName string, txn *tx.Transaction) (
 	if err != nil {
 		return nil, err
 	}
-	ts, err := table.NewTableScan(txn, "idxcat", indexCatalogLayout)
+	ts, err := scan.NewTableScan(txn, "idxcat", indexCatalogLayout)
 	if err != nil {
 		return nil, err
 	}

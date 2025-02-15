@@ -4,7 +4,7 @@ import (
 	"fmt"
 	assertPkg "github.com/stretchr/testify/assert"
 	"jadb/record"
-	"jadb/table"
+	"jadb/scan"
 	"jadb/tx"
 	"testing"
 )
@@ -96,7 +96,7 @@ func TestIndexTraversal(t *testing.T) {
 
 	testRecordCount := 1000
 	testMap := make(map[string]record.RID)
-	ts, err := table.NewTableScan(txn, testTableName, record.NewLayout(testTableSchema))
+	ts, err := scan.NewTableScan(txn, testTableName, record.NewLayout(testTableSchema))
 	assert.NoError(err)
 	for i := 0; i < testRecordCount; i++ {
 		name := fmt.Sprintf("n%d", i)

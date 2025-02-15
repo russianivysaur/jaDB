@@ -1,13 +1,12 @@
-package table
+package scan
 
 import (
 	"jadb/file"
 	"jadb/record"
-	"jadb/scan"
 	"jadb/tx"
 )
 
-var _ scan.UpdateScan = (*TableScan)(nil)
+var _ UpdateScan = (*TableScan)(nil)
 
 type TableScan struct {
 	tx          *tx.Transaction

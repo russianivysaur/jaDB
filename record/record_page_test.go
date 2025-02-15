@@ -81,7 +81,7 @@ func TestRecordPage(t *testing.T) {
 	block, err := txn.Append(env.dbFile)
 
 	// make a rp
-	rp, err := NewRecordPage(txn, block, &layout)
+	rp, err := NewRecordPage(txn, block, layout)
 	assert.NoError(err)
 
 	// if we choose blockSize of 100 then 100/26 = 3
@@ -128,7 +128,7 @@ func TestRecordPage(t *testing.T) {
 	assert.NoError(err)
 
 	//make the rp
-	rp, err = NewRecordPage(txn, block, &layout)
+	rp, err = NewRecordPage(txn, block, layout)
 	assert.NoError(err)
 	actualId, err := rp.GetInt(0, id)
 	assert.Equal(record.id, actualId)

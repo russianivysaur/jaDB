@@ -54,14 +54,16 @@ func TestBufferManager(t *testing.T) {
 	assert := assertPkg.New(t)
 
 	env := initEnv(t)
-	bm, err := NewBufferManager(env.fm, env.lm, env.bufferPoolCount)
-	assert.NoError(err)
 	t.Run("Available", func(t *testing.T) {
+		bm, err := NewBufferManager(env.fm, env.lm, env.bufferPoolCount)
+		assert.NoError(err)
 		assert.Equalf(bm.Available(), env.bufferPoolCount,
 			"expected %d buffer pool, got %d", env.bufferPoolCount, bm.Available)
 	})
 
 	t.Run("PinUnpinTest", func(t *testing.T) {
+		bm, err := NewBufferManager(env.fm, env.lm, env.bufferPoolCount)
+		assert.NoError(err)
 		testBlock := file.NewBlock(env.databaseFile, 0)
 		buffer, err := bm.Pin(testBlock)
 		assert.NoErrorf(err, "could not pin block: %v", err)
@@ -80,6 +82,8 @@ func TestBufferManager(t *testing.T) {
 	})
 
 	t.Run("MultiplePinUnpinTest", func(t *testing.T) {
+		bm, err := NewBufferManager(env.fm, env.lm, env.bufferPoolCount)
+		assert.NoError(err)
 		testBlock1 := file.NewBlock(env.databaseFile, 0)
 		testBlock2 := file.NewBlock(env.databaseFile, 1)
 		//get 2 buffers
@@ -104,6 +108,8 @@ func TestBufferManager(t *testing.T) {
 	})
 
 	t.Run("BufferTimeoutTest", func(t *testing.T) {
+		bm, err := NewBufferManager(env.fm, env.lm, env.bufferPoolCount)
+		assert.NoError(err)
 		for i := 0; i < env.bufferPoolCount; i++ {
 			_, err := bm.Pin(file.NewBlock(env.databaseFile, i))
 			assert.Equalf(bm.Available(), env.bufferPoolCount-(i+1),
@@ -112,12 +118,14 @@ func TestBufferManager(t *testing.T) {
 		}
 
 		//try to pin another block - 100
-		_, err := bm.Pin(file.NewBlock(env.databaseFile, env.bufferPoolCount))
+		_, err = bm.Pin(file.NewBlock(env.databaseFile, env.bufferPoolCount))
 		assert.ErrorIs(err, context.DeadlineExceeded, "did not timeout")
 
 	})
 
 	t.Run("ConcurrencyTest", func(t *testing.T) {
+		bm, err := NewBufferManager(env.fm, env.lm, env.bufferPoolCount)
+		assert.NoError(err)
 		// there are total of 100 buffers
 		// gonna spin up 99 threads to pin 99 blocks
 		// spin up 1 thread to fill the last remaining
@@ -158,6 +166,8 @@ func TestBufferManager(t *testing.T) {
 	})
 
 	t.Run("TimeOutTest", func(t *testing.T) {
+		bm, err := NewBufferManager(env.fm, env.lm, env.bufferPoolCount)
+		assert.NoError(err)
 		// there are total of 100 buffers
 		// gonna spin up 99 threads to pin 99 blocks
 		// spin up 1 thread to fill the last remaining
@@ -192,7 +202,7 @@ func TestBufferManager(t *testing.T) {
 
 		wg1.Wait()
 		// the starving thread
-		_, err := bm.Pin(file.NewBlock(env.databaseFile, env.bufferPoolCount))
+		_, err = bm.Pin(file.NewBlock(env.databaseFile, env.bufferPoolCount))
 		assert.ErrorIsf(err, context.DeadlineExceeded, "OOM: %v", err)
 	})
 

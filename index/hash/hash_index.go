@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"jadb/index"
 	"jadb/record"
-	"jadb/table"
+	"jadb/scan"
 	"jadb/tx"
 	"jadb/utils"
 )
@@ -18,7 +18,7 @@ type HashIndex struct {
 	idxName   string
 	layout    *record.Layout
 	searchKey any
-	ts        *table.TableScan
+	ts        *scan.TableScan
 }
 
 func NewHashIndex(txn *tx.Transaction, idxName string, layout *record.Layout) *HashIndex {
@@ -39,7 +39,7 @@ func (h *HashIndex) BeforeFirst(searchKey any) error {
 	}
 	bucket := hashCode % NUM_BUCKETS
 	tblName := fmt.Sprintf("%s%d", h.idxName, bucket)
-	ts, err := table.NewTableScan(h.txn, tblName, h.layout)
+	ts, err := scan.NewTableScan(h.txn, tblName, h.layout)
 	if err != nil {
 		return err
 	}

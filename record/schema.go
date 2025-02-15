@@ -51,6 +51,7 @@ func (schema *Schema) Type(fldName string) int {
 }
 
 func (schema *Schema) Length(fldName string) int {
+	//fmt.Println(schema.info)
 	return schema.info[fldName].length
 }
 

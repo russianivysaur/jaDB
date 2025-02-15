@@ -3,6 +3,7 @@ package record
 import (
 	assertPkg "github.com/stretchr/testify/assert"
 	"jadb/constants"
+	"jadb/file"
 	"testing"
 )
 
@@ -16,7 +17,7 @@ func TestSchema(t *testing.T) {
 		schema.Fields())
 
 	assert.Equal(constants.IntSize, schema.Length("testInt"))
-	assert.Equal(80, schema.Length("testString"))
+	assert.Equal(file.MaxLength(80), schema.Length("testString"))
 
 	assert.Equal(false, schema.HasField("idk"))
 	assert.Equal(true, schema.HasField("testInt"))

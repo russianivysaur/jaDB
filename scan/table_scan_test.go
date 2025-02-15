@@ -1,4 +1,4 @@
-package table
+package scan
 
 import (
 	"fmt"
@@ -77,7 +77,7 @@ func TestTableScan(t *testing.T) {
 		age  int
 	}
 	recCount := 20
-	ts, err := NewTableScan(txn, "test", &layout)
+	ts, err := NewTableScan(txn, "test", layout)
 	assert.NoError(err)
 	for i := 0; i < recCount; i++ {
 		err = ts.Insert()
@@ -95,7 +95,7 @@ func TestTableScan(t *testing.T) {
 
 	txn, err = tx.NewTransaction(env.fm, env.lm, env.bm, env.lt)
 	assert.NoError(err)
-	ts, err = NewTableScan(txn, "test", &layout)
+	ts, err = NewTableScan(txn, "test", layout)
 	assert.NoError(err)
 
 	// read data back out
