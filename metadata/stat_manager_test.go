@@ -8,7 +8,7 @@ import (
 	"jadb/file"
 	"jadb/log"
 	"jadb/record"
-	"jadb/scan"
+	"jadb/scan_types"
 	"jadb/tx"
 	"os"
 	"path/filepath"
@@ -57,7 +57,7 @@ func TestStatManager(t *testing.T) {
 	assert.NoError(err)
 
 	testTableLayout := record.NewLayout(testTableSchema)
-	ts, err := scan.NewTableScan(txn, testTableName, testTableLayout)
+	ts, err := scan_types.NewTableScan(txn, testTableName, testTableLayout)
 	assert.NoError(err)
 
 	testRecordCount := 1000
@@ -115,7 +115,7 @@ func TestStatsUpdateAfter100Calls(t *testing.T) {
 	assert.NoError(err)
 
 	testTableLayout := record.NewLayout(testTableSchema)
-	ts, err := scan.NewTableScan(txn, testTableName, testTableLayout)
+	ts, err := scan_types.NewTableScan(txn, testTableName, testTableLayout)
 	assert.NoError(err)
 
 	testRecordCount := 100
@@ -143,7 +143,7 @@ func TestStatsUpdateAfter100Calls(t *testing.T) {
 	statsManager, err := NewStatManager(tableManager, txn)
 	assert.NoError(err)
 
-	ts, err = scan.NewTableScan(txn, testTableName, testTableLayout)
+	ts, err = scan_types.NewTableScan(txn, testTableName, testTableLayout)
 	assert.NoError(err)
 	// add more records in the table
 

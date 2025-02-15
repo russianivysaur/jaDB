@@ -1,12 +1,13 @@
-package scan
+package scan_types
 
 import (
 	"jadb/file"
 	"jadb/record"
+	"jadb/scan"
 	"jadb/tx"
 )
 
-var _ UpdateScan = (*TableScan)(nil)
+var _ scan.UpdateScan = (*TableScan)(nil)
 
 type TableScan struct {
 	tx          *tx.Transaction
@@ -74,39 +75,39 @@ func (ts *TableScan) Next() (bool, error) {
 	return true, nil
 }
 
-func (ts *TableScan) GetInt(fldname string) (int, error) {
-	return ts.rp.GetInt(ts.currentSlot, fldname)
+func (ts *TableScan) GetInt(fldName string) (int, error) {
+	return ts.rp.GetInt(ts.currentSlot, fldName)
 }
 
-func (ts *TableScan) GetString(fldname string) (string, error) {
-	return ts.rp.GetString(ts.currentSlot, fldname)
+func (ts *TableScan) GetString(fldName string) (string, error) {
+	return ts.rp.GetString(ts.currentSlot, fldName)
 }
 
-func (ts *TableScan) GetVal(fldname string) (any, error) {
-	if ts.layout.Schema().Type(fldname) == record.INTEGER {
-		return ts.GetInt(fldname)
+func (ts *TableScan) GetVal(fldName string) (any, error) {
+	if ts.layout.Schema().Type(fldName) == record.INTEGER {
+		return ts.GetInt(fldName)
 	} else {
-		return ts.GetString(fldname)
+		return ts.GetString(fldName)
 	}
 }
 
-func (ts *TableScan) HasField(fldname string) bool {
-	return ts.layout.Schema().HasField(fldname)
+func (ts *TableScan) HasField(fldName string) bool {
+	return ts.layout.Schema().HasField(fldName)
 }
 
-func (ts *TableScan) SetInt(fldname string, val int) error {
-	return ts.rp.SetInt(ts.currentSlot, fldname, val)
+func (ts *TableScan) SetInt(fldName string, val int) error {
+	return ts.rp.SetInt(ts.currentSlot, fldName, val)
 }
 
-func (ts *TableScan) SetString(fldname string, val string) error {
-	return ts.rp.SetString(ts.currentSlot, fldname, val)
+func (ts *TableScan) SetString(fldName string, val string) error {
+	return ts.rp.SetString(ts.currentSlot, fldName, val)
 }
 
-func (ts *TableScan) SetVal(fldname string, val any) error {
-	if ts.layout.Schema().Type(fldname) == record.INTEGER {
-		return ts.SetInt(fldname, val.(int))
+func (ts *TableScan) SetVal(fldName string, val any) error {
+	if ts.layout.Schema().Type(fldName) == record.INTEGER {
+		return ts.SetInt(fldName, val.(int))
 	} else {
-		return ts.SetString(fldname, val.(string))
+		return ts.SetString(fldName, val.(string))
 	}
 }
 

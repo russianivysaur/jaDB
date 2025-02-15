@@ -3,7 +3,7 @@ package metadata
 import (
 	"fmt"
 	"jadb/record"
-	"jadb/scan"
+	"jadb/scan_types"
 	"jadb/tx"
 )
 
@@ -33,7 +33,7 @@ func (manager *ViewManager) createView(viewName string, viewDef string, txn *tx.
 	if err != nil {
 		return err
 	}
-	ts, err := scan.NewTableScan(txn, "viewcat", layout)
+	ts, err := scan_types.NewTableScan(txn, "viewcat", layout)
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func (manager *ViewManager) getViewDef(viewName string, txn *tx.Transaction) (st
 	if err != nil {
 		return "", err
 	}
-	ts, err := scan.NewTableScan(txn, "viewcat", viewCatalogLayout)
+	ts, err := scan_types.NewTableScan(txn, "viewcat", viewCatalogLayout)
 	if err != nil {
 		return "", err
 	}

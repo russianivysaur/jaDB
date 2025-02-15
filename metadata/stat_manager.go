@@ -2,7 +2,7 @@ package metadata
 
 import (
 	"jadb/record"
-	"jadb/scan"
+	"jadb/scan_types"
 	"jadb/tx"
 	"sync"
 )
@@ -55,7 +55,7 @@ func (manager *StatManager) refreshStatistics(txn *tx.Transaction) error {
 	if err != nil {
 		return err
 	}
-	ts, err := scan.NewTableScan(txn, "tblcat", tableCatalogLayout)
+	ts, err := scan_types.NewTableScan(txn, "tblcat", tableCatalogLayout)
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func (manager *StatManager) calcTableStats(tableName string,
 	txn *tx.Transaction) (*StatInfo, error) {
 	numRecords := 0
 	numBlocks := 0
-	ts, err := scan.NewTableScan(txn, tableName, tableLayout)
+	ts, err := scan_types.NewTableScan(txn, tableName, tableLayout)
 	if err != nil {
 		return nil, err
 	}
