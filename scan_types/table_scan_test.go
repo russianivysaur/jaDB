@@ -25,26 +25,24 @@ type TestEnv struct {
 	lt        *concurrency.LockTable
 }
 
-var env TestEnv
-
-func initEnv(assert *assertPkg.Assertions) {
+func initEnv(assert *assertPkg.Assertions) TestEnv {
 	dbFile := "test.db"
 	logFile := "test.log"
-	blockSize := 200
+	blockSize := 4096
 	tempDir := filepath.Join(os.TempDir(), "temp")
 	fm, err := file.NewFileManager(tempDir, blockSize)
 	assert.NoError(err)
 	lm, err := log.NewLogManager(fm, logFile)
 	assert.NoError(err)
-	bm, err := buffer.NewBufferManager(fm, lm, 30)
+	bm, err := buffer.NewBufferManager(fm, lm, 100)
 	assert.NoError(err)
 	lt := concurrency.NewLockTable()
-	env = TestEnv{
+	return TestEnv{
 		fm, lm, bm, dbFile, tempDir, logFile, blockSize, lt,
 	}
 }
 
-func clearEnv(t *testing.T) {
+func clearEnv(t *testing.T, env TestEnv) {
 	if err := os.RemoveAll(env.tempDir); err != nil {
 		t.Error(err)
 	}
@@ -52,7 +50,7 @@ func clearEnv(t *testing.T) {
 
 func TestTableScan(t *testing.T) {
 	assert := assertPkg.New(t)
-	initEnv(assert)
+	env := initEnv(assert)
 
 	//table schema
 	schema := record.NewSchema()
@@ -116,5 +114,5 @@ func TestTableScan(t *testing.T) {
 
 	err = txn.Rollback()
 	assert.NoError(err)
-	clearEnv(t)
+	clearEnv(t, env)
 }
