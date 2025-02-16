@@ -12,8 +12,8 @@ type ProjectScan struct {
 	fldList map[string]bool
 }
 
-func NewProjectScan(s scan.Scan) *ProjectScan {
-	return &ProjectScan{s, make(map[string]bool)}
+func NewProjectScan(s scan.Scan, fldList map[string]bool) *ProjectScan {
+	return &ProjectScan{s, fldList}
 }
 
 func (p ProjectScan) BeforeFirst() error {
