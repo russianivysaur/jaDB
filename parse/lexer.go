@@ -43,11 +43,11 @@ func (lexer *Lexer) eatDelim(d byte) {
 }
 
 func (lexer *Lexer) eatIntConstant() int {
-
+	return -1
 }
 
 func (lexer *Lexer) eatStringConstant() string {
-
+	return ""
 }
 
 func (lexer *Lexer) eatKeyword(keyword string) {
@@ -55,7 +55,7 @@ func (lexer *Lexer) eatKeyword(keyword string) {
 }
 
 func (lexer *Lexer) eatId() string {
-
+	return ""
 }
 
 func (lexer *Lexer) initKeywords() {

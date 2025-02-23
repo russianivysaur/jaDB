@@ -7,3 +7,7 @@ type Tokenizer struct {
 func NewTokenizer(input string) *Tokenizer {
 	return &Tokenizer{input}
 }
+
+func (t *Tokenizer) Next() {
+
+}
