@@ -15,6 +15,7 @@ const (
 	TTNumber
 	TTString
 	TTOperator
+	TTEof
 )
 
 type SyntaxError struct {
@@ -40,12 +41,15 @@ type Lexer struct {
 	keywords     map[string]bool
 }
 
-func NewLexer(input string) *Lexer {
+func NewLexer(input string) (*Lexer, error) {
 	l := &Lexer{
 		input: strings.ToLower(input),
 	}
 	l.initKeywords()
-	return l
+	if err := l.Next(); err != nil {
+		return nil, err
+	}
+	return l, nil
 }
 
 func (lexer *Lexer) matchDelim(d rune) bool {
@@ -60,8 +64,8 @@ func (lexer *Lexer) matchStringConstant() bool {
 	return lexer.currentToken.tokenType == TTString
 }
 
-func (lexer *Lexer) matchKeyword() bool {
-	return lexer.currentToken.tokenType == TTString && lexer.keywords[lexer.currentToken.str]
+func (lexer *Lexer) matchKeyword(keyword string) bool {
+	return lexer.currentToken.tokenType == TTString && lexer.currentToken.str == keyword && lexer.keywords[lexer.currentToken.str]
 }
 
 func (lexer *Lexer) matchId() bool {
@@ -70,13 +74,12 @@ func (lexer *Lexer) matchId() bool {
 
 func (lexer *Lexer) eatDelim(d rune) error {
 	if lexer.currentToken.tokenType != TTDelimiter {
-		return &SyntaxError{"Expected a delimiter"}
+		return &SyntaxError{fmt.Sprintf("Expected a delimiter %c at %d got %v", d, lexer.position, lexer.currentToken.tokenType)}
 	}
 	if lexer.currentToken.delimiter != d {
 		return &SyntaxError{fmt.Sprintf("expected %c,got %c", d, lexer.currentToken.delimiter)}
 	}
-	lexer.Next()
-	return nil
+	return lexer.Next()
 }
 
 func (lexer *Lexer) eatIntConstant() (int, error) {
@@ -84,7 +87,9 @@ func (lexer *Lexer) eatIntConstant() (int, error) {
 		return -1, &SyntaxError{"expected number"}
 	}
 	val := lexer.currentToken.number
-	lexer.Next()
+	if err := lexer.Next(); err != nil {
+		return -1, err
+	}
 	return val, nil
 }
 
@@ -93,28 +98,29 @@ func (lexer *Lexer) eatStringConstant() (string, error) {
 		return "", &SyntaxError{"expected string"}
 	}
 	val := lexer.currentToken.str
-	lexer.Next()
+	if err := lexer.Next(); err != nil {
+		return "", err
+	}
 	return val, nil
 }
 
 func (lexer *Lexer) eatKeyword(keyword string) error {
 	if lexer.currentToken.tokenType != TTString {
-		return &SyntaxError{"expected TTString"}
+		return &SyntaxError{fmt.Sprintf("expected TTString,got %v", lexer.currentToken.tokenType)}
 	}
 	val := lexer.currentToken.str
 	if val != keyword {
-		return &SyntaxError{fmt.Sprintf("expected %s,go %s", keyword, val)}
+		return &SyntaxError{fmt.Sprintf("expected %s,got %s", keyword, val)}
 	}
-	lexer.Next()
-	return nil
+	return lexer.Next()
 }
 
 func (lexer *Lexer) eatId() (string, error) {
 	if lexer.currentToken.tokenType != TTString {
 		return "", &SyntaxError{"expected TTString"}
 	}
-	lexer.Next()
-	return lexer.currentToken.str, nil
+	val := lexer.currentToken.str
+	return val, lexer.Next()
 }
 
 func (lexer *Lexer) initKeywords() {
@@ -133,6 +139,10 @@ func (lexer *Lexer) initKeywords() {
 
 func (lexer *Lexer) Next() error {
 	lexer.skipWhitespaces()
+	if lexer.position >= len(lexer.input) {
+		lexer.currentToken = Token{tokenType: TTEof}
+		return nil
+	}
 	nextRune, width := utf8.DecodeRuneInString(lexer.input[lexer.position:])
 	switch {
 	case isDelimiter(nextRune):
@@ -195,8 +205,22 @@ func (lexer *Lexer) Next() error {
 			lexer.currentToken = Token{tokenType: TTOperator, operator: operator.String()}
 			return nil
 		}
+	case unicode.IsLetter(nextRune) || nextRune == '_':
+		{
+			var word strings.Builder
+			word.WriteRune(nextRune)
+			lexer.position += width
+			nextRune, width = utf8.DecodeRuneInString(lexer.input[lexer.position:])
+			for unicode.IsLetter(nextRune) || nextRune == '_' {
+				word.WriteRune(nextRune)
+				lexer.position += width
+				nextRune, width = utf8.DecodeRuneInString(lexer.input[lexer.position:])
+			}
+			lexer.currentToken = Token{tokenType: TTString, str: word.String()}
+			return nil
+		}
 	}
-	return &SyntaxError{fmt.Sprintf("unrecognized token at %d", lexer.position)}
+	return fmt.Errorf("unexpected character %c at %d", nextRune, lexer.position)
 }
 
 func isDelimiter(r rune) bool {
@@ -222,7 +246,11 @@ func isOperatorStart(r rune) bool {
 }
 
 func (lexer *Lexer) skipWhitespaces() {
-	for lexer.position < len(lexer.input) && lexer.input[lexer.position] == ' ' {
-		lexer.position++
+	for lexer.position < len(lexer.input) {
+		nextRune, width := utf8.DecodeRuneInString(lexer.input[lexer.position:])
+		if !unicode.IsSpace(nextRune) {
+			return
+		}
+		lexer.position += width
 	}
 }
