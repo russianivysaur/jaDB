@@ -4,26 +4,26 @@ import "jadb/query"
 
 type ModifyData struct {
 	tableName string
-	fields    []string
-	values    []any
+	field     string
+	value     any
 	predicate *query.Predicate
 }
 
-func NewModifyData(tableName string, fields []string, values []any, predicate *query.Predicate) *ModifyData {
+func NewModifyData(tableName string, field string, value any, predicate *query.Predicate) *ModifyData {
 	return &ModifyData{
 		tableName,
-		fields,
-		values,
+		field,
+		value,
 		predicate,
 	}
 }
 
-func (m *ModifyData) Fields() []string {
-	return m.fields
+func (m *ModifyData) Fields() string {
+	return m.field
 }
 
-func (m *ModifyData) Values() []any {
-	return m.values
+func (m *ModifyData) Values() any {
+	return m.value
 }
 
 func (m *ModifyData) Predicate() *query.Predicate {

@@ -142,28 +142,155 @@ func (parser *Parser) tableList() ([]string, error) {
 
 func (parser *Parser) updateCmd() (any, error) {
 	switch {
-	//case parser.lexer.matchKeyword("insert"):
-	//	return parser.insert()
-	//case parser.lexer.matchKeyword("delete"):
-	//	return parser.delete()
-	//case parser.lexer.matchKeyword("update"):
-	//	return parser.update()
+	case parser.lexer.matchKeyword("insert"):
+		return parser.insert()
+	case parser.lexer.matchKeyword("delete"):
+		return parser.delete()
+	case parser.lexer.matchKeyword("update"):
+		return parser.update()
 	default:
 		return parser.create()
 	}
 }
 
-//func (parser *Parser) insert() (*InsertData, error) {
-//
-//}
-//
-//func (parser *Parser) delete() (*DeleteData, error) {
-//
-//}
-//
-//func (parser *Parser) update() (*ModifyData, error) {
-//
-//}
+func (parser *Parser) insert() (*InsertData, error) {
+	if err := parser.lexer.eatKeyword("insert"); err != nil {
+		return nil, err
+	}
+	if err := parser.lexer.eatKeyword("into"); err != nil {
+		return nil, err
+	}
+	tableName, err := parser.lexer.eatId()
+	if err != nil {
+		return nil, err
+	}
+	if err := parser.lexer.eatDelim('('); err != nil {
+		return nil, err
+	}
+	fields, err := parser.fieldList()
+	if err != nil {
+		return nil, err
+	}
+	if err := parser.lexer.eatDelim(')'); err != nil {
+		return nil, err
+	}
+	if err := parser.lexer.eatKeyword("values"); err != nil {
+		return nil, err
+	}
+	if err := parser.lexer.eatDelim('('); err != nil {
+		return nil, err
+	}
+	values, err := parser.constList()
+	if err != nil {
+		return nil, err
+	}
+	return &InsertData{
+		fieldList: fields,
+		tblName:   tableName,
+		values:    values,
+	}, nil
+}
+
+func (parser *Parser) fieldList() ([]string, error) {
+	list := []string{}
+	field, err := parser.field()
+	if err != nil {
+		return nil, err
+	}
+	list = append(list, field)
+	if parser.lexer.matchDelim(',') {
+		if err = parser.lexer.eatDelim(','); err != nil {
+			return nil, err
+		}
+		fields, err := parser.fieldList()
+		if err != nil {
+			return list, err
+		}
+		list = append(list, fields...)
+	}
+	return list, nil
+}
+
+func (parser *Parser) constList() ([]any, error) {
+	list := []any{}
+	value, err := parser.constant()
+	if err != nil {
+		return nil, err
+	}
+	list = append(list, value)
+	if parser.lexer.matchDelim(',') {
+		if err := parser.lexer.eatDelim(','); err != nil {
+			return nil, err
+		}
+		values, err := parser.constList()
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, values...)
+	}
+	return list, nil
+}
+
+func (parser *Parser) delete() (*DeleteData, error) {
+	if err := parser.lexer.eatKeyword("delete"); err != nil {
+		return nil, err
+	}
+	if err := parser.lexer.eatKeyword("from"); err != nil {
+		return nil, err
+	}
+	tableName, err := parser.lexer.eatId()
+	if err != nil {
+		return nil, err
+	}
+	if err := parser.lexer.eatKeyword("where"); err != nil {
+		return nil, err
+	}
+	pred, err := parser.predicate()
+	if err != nil {
+		return nil, err
+	}
+	return &DeleteData{
+		tableName: tableName,
+		predicate: pred,
+	}, nil
+}
+
+func (parser *Parser) update() (*ModifyData, error) {
+	if err := parser.lexer.eatKeyword("update"); err != nil {
+		return nil, err
+	}
+	tableName, err := parser.lexer.eatId()
+	if err != nil {
+		return nil, err
+	}
+	if err := parser.lexer.eatKeyword("set"); err != nil {
+		return nil, err
+	}
+	fldName, err := parser.lexer.eatId()
+	if err != nil {
+		return nil, err
+	}
+	if err := parser.lexer.eatDelim('='); err != nil {
+		return nil, err
+	}
+	expression, err := parser.expression()
+	if err != nil {
+		return nil, err
+	}
+	if err := parser.lexer.eatKeyword("where"); err != nil {
+		return nil, err
+	}
+	pred, err := parser.predicate()
+	if err != nil {
+		return nil, err
+	}
+	return &ModifyData{
+		tableName: tableName,
+		predicate: pred,
+		value:     expression,
+		field:     fldName,
+	}, nil
+}
 
 func (parser *Parser) create() (any, error) {
 	if err := parser.lexer.eatKeyword("create"); err != nil {
