@@ -1,6 +1,7 @@
 package parse
 
 import (
+	"fmt"
 	assertPkg "github.com/stretchr/testify/assert"
 	"jadb/file"
 	"jadb/record"
@@ -46,4 +47,19 @@ func TestCreateIndex(t *testing.T) {
 	assert.Equal("hehe", createIndexData.indexName)
 	assert.Equal("test", createIndexData.tableName)
 	assert.Equal("col", createIndexData.fieldName)
+}
+
+func TestDelete(t *testing.T) {
+	assert := assertPkg.New(t)
+	testTableName := "test_table"
+	testField := "test_field"
+	testValue := "test_value"
+	sql := fmt.Sprintf("DELETE FROM %s WHERE %s=%s", testTableName, testField, testValue)
+	parser, err := NewParser(sql)
+	//pred := query.NewPredicateFromTerm(query.NewTerm(query.NewFieldExpression(testField),query.NewConstantExpression(testValue),query.Equal))
+	assert.NoError(err)
+	data, err := parser.updateCmd()
+	assert.NoError(err)
+	deleteData := data.(*DeleteData)
+	assert.Equal(deleteData.tableName, testTableName)
 }
